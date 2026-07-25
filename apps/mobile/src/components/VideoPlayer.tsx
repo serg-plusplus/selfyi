@@ -1,3 +1,5 @@
+import { useIsFocused } from "@react-navigation/native";
+import { useEventListener } from "expo";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -40,12 +42,27 @@ export function VideoPlayer({
     }
   }, [player, url]);
 
+  // Pause whenever this screen loses navigation focus (another screen pushed
+  // on top, tab switched) — otherwise audio keeps playing behind it.
+  const isFocused = useIsFocused();
+  const shouldPlay = !paused && isFocused;
+
+  // A play() issued while the HLS source is still "loading" can get dropped —
+  // re-issue it the moment the stream becomes ready. Also surface player
+  // errors in the Metro console instead of failing silently.
+  const shouldPlayRef = useRef(shouldPlay);
+  shouldPlayRef.current = shouldPlay;
+  useEventListener(player, "statusChange", ({ status, error }) => {
+    if (error) console.warn(`[video ${playbackId}] player error:`, error.message);
+    if (status === "readyToPlay" && shouldPlayRef.current) player.play();
+  });
+
   useEffect(() => {
     player.muted = muted;
   }, [player, muted]);
 
   useEffect(() => {
-    if (paused) {
+    if (!shouldPlay) {
       player.pause();
       return;
     }
@@ -56,7 +73,7 @@ export function VideoPlayer({
       player.currentTime = 0;
     }
     player.play();
-  }, [player, paused]);
+  }, [player, shouldPlay]);
 
   return (
     <View style={[StyleSheet.absoluteFill, style]}>

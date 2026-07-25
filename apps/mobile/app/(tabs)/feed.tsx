@@ -34,13 +34,26 @@ export default function FeedScreen() {
     );
   }
 
+  const activeIndex = Math.max(
+    0,
+    videos.findIndex((v) => v.id === activeId),
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
       <FeedList
         data={videos}
         itemHeight={height}
         keyExtractor={(v) => v.id}
-        renderItem={(v) => <VideoListItem video={v} isActive={v.id === activeId} height={height} />}
+        renderItem={(v, i) => (
+          <VideoListItem
+            video={v}
+            isActive={v.id === activeId}
+            // live player only around the viewport — iOS decoder limit
+            mounted={Math.abs(i - activeIndex) <= 1}
+            height={height}
+          />
+        )}
         onEndReached={() => {
           if (hasNextPage) void fetchNextPage();
         }}

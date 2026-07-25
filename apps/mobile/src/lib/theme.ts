@@ -10,7 +10,7 @@ export const theme = {
     border: "#262626",
     text: "#fff",
     textMuted: "#aaa",
-    accent: "#ff2d55",
+    accent: "#4aabff",
     danger: "#ff453a",
     overlay: "rgba(0,0,0,0.4)",
   },

@@ -31,12 +31,21 @@ export default function ProfileScreen() {
         onEndReached={() => query.hasNextPage && query.fetchNextPage()}
         ListHeaderComponent={
           <View style={{ alignItems: "center", padding: theme.spacing.lg, gap: theme.spacing.sm }}>
+            {/* Logout: vertically centered on the avatar row, safely offset to
+                the right so it can't be fat-fingered from the avatar. */}
             <Pressable
               onPress={logout}
               hitSlop={10}
-              style={{ position: "absolute", top: theme.spacing.md, right: theme.spacing.md }}
+              style={{
+                position: "absolute",
+                top: theme.spacing.lg + 44 - 21, // avatar center (lg pad + 88/2) minus half button
+                right: theme.spacing.lg,
+                backgroundColor: theme.colors.surfaceAlt,
+                borderRadius: theme.radius.full,
+                padding: theme.spacing.sm + 1,
+              }}
             >
-              <Ionicons name="log-out-outline" size={24} color={theme.colors.text} />
+              <Ionicons name="log-out-outline" size={20} color={theme.colors.text} />
             </Pressable>
             <Avatar uri={user.avatar_url} name={user.handle} size={88} />
             <Text style={{ color: theme.colors.text, fontSize: theme.font.xl, fontWeight: "800" }}>

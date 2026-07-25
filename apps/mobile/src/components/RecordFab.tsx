@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { ActivityIndicator, Alert, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MAX_VIDEO_DURATION_SEC } from "@selfie/common";
 import { useUiStore, useUploadVideo } from "@/sdk";
 import { theme } from "@/lib/theme";
+import Logo from "../../../../logo.svg";
 
 /**
  * The always-visible camera FAB (Decision 6 + 13.2): opens the NATIVE iOS
@@ -52,7 +52,8 @@ export function RecordFab() {
       {fabState === "uploading" ? (
         <ActivityIndicator color="#fff" />
       ) : (
-        <Ionicons name="videocam" size={28} color="#fff" />
+        // The FAB *is* the brand logo (blue circle + eyes), scaled to fill.
+        <Logo width={60} height={60} />
       )}
     </Pressable>
   );
