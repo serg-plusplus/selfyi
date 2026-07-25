@@ -33,7 +33,9 @@ class_name = "WorldIdSession"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["WorldIdSession"]
+# SQLite-backed DO storage — required on the Workers Free plan (and the
+# recommended backend anyway). Classic `new_classes` needs a paid plan.
+new_sqlite_classes = ["WorldIdSession"]
 
 # ----------------------------------------------------------------------------
 # Vars (non-secret). Secrets are set via `wrangler secret put <NAME>`:
