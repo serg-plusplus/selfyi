@@ -68,8 +68,10 @@ jobs:
             fi
             sed -i "s|<$name>|$value|g" wrangler.toml
           done
-          # Fail loudly if any placeholder slipped through
-          if grep -En '<[A-Z_]+>' wrangler.toml; then
+          # Fail loudly if any placeholder slipped through.
+          # `^[^#]*` ignores placeholders inside comments (e.g. the
+          # `wrangler secret put <NAME>` doc line) — only real config values count.
+          if grep -En '^[^#]*<[A-Z_]+>' wrangler.toml; then
             echo "::error::Unreplaced placeholders remain in wrangler.toml (see lines above)"
             exit 1
           fi
