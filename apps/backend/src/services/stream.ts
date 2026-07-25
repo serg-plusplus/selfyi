@@ -59,5 +59,11 @@ export async function deleteStreamVideo(env: Env, uid: string): Promise<void> {
 
 /** Default poster frame for a Stream video. */
 export function thumbnailUrl(env: Env, uid: string, timeSec = 1): string {
-  return `https://customer-${env.STREAM_CUSTOMER_CODE}.cloudflarestream.com/${uid}/thumbnails/thumbnail.jpg?time=${timeSec}s`;
+  // Tolerate "customer-XXX" / "customer-XXX.cloudflarestream.com" paste-os in
+  // the STREAM_CUSTOMER_CODE var — we only need the bare code here.
+  const code = env.STREAM_CUSTOMER_CODE.replace(/^(https?:\/\/)?(customer-)?/, "").replace(
+    /\.cloudflarestream\.com.*$/,
+    "",
+  );
+  return `https://customer-${code}.cloudflarestream.com/${uid}/thumbnails/thumbnail.jpg?time=${timeSec}s`;
 }

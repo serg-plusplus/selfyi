@@ -10,7 +10,7 @@ Search the repo for `<PLACEHOLDER>` tokens — each one is listed here.
 | `<CF_ACCOUNT_ID>` | `wrangler.toml` vars, `.dev.vars` | Dashboard → Workers & Pages → right sidebar |
 | `<D1_DATABASE_ID>` | `wrangler.toml` | printed by `wrangler d1 create selfie-db` |
 | `<KV_NAMESPACE_ID>` | `wrangler.toml` | printed by `wrangler kv namespace create KV` |
-| `<STREAM_CUSTOMER_CODE>` | `wrangler.toml`, mobile `.env.development` | Dashboard → Stream → the `customer-XXXX` subdomain |
+| `<STREAM_CUSTOMER_CODE>` | `wrangler.toml`, mobile `.env.development` | Dashboard → Stream → subdomain `customer-XXXX.cloudflarestream.com` → use the **bare `XXXX` code only** (prefix/domain are added by the code) |
 | `<CF_STREAM_API_TOKEN>` | secret `STREAM_API_TOKEN` | My Profile → API Tokens → create with **Stream:Edit** |
 | `<STREAM_WEBHOOK_SECRET>` | secret | printed when creating the Stream webhook (point it at `https://<worker>/api/webhooks/stream`) |
 | `JWT_SECRET` | secret / `.dev.vars` | `openssl rand -base64 48` |
