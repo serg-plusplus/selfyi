@@ -1,5 +1,10 @@
-import { useRef, useState } from "react";
-import { useWindowDimensions, View } from "react-native";
+import { useState } from "react";
+import {
+  useWindowDimensions,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 import { useFeed, type Video } from "@/sdk";
 import { EmptyState } from "@/components/EmptyState";
 import { FeedList } from "@/components/FeedList";
@@ -17,13 +22,16 @@ export default function FeedScreen() {
   const [activeIdState, setActiveId] = useState<string | null>(null);
   const activeId = activeIdState ?? videos[0]?.id ?? null;
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: { item: Video; isViewable: boolean }[] }) => {
-      const first = viewableItems.find((v) => v.isViewable);
-      if (first) setActiveId(first.item.id);
-    },
-  ).current;
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+  // Active page from raw scroll offset — @legendapp/list v1 viewability
+  // callbacks are unreliable (stabilized only in v2), scroll events always fire.
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.y / height);
+    const v = videos[Math.max(0, Math.min(videos.length - 1, idx))];
+    if (v && v.id !== activeId) {
+      if (__DEV__) console.log(`[feed] active → #${idx} (${v.id})`);
+      setActiveId(v.id);
+    }
+  };
 
   if (isLoading) return <LoadingDots fullscreen />;
   if (videos.length === 0) {
@@ -58,8 +66,7 @@ export default function FeedScreen() {
         onEndReached={() => {
           if (hasNextPage) void fetchNextPage();
         }}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
+        onScroll={onScroll}
       />
     </View>
   );

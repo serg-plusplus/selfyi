@@ -1,9 +1,9 @@
 // NOTE: must come from expo-router — in SDK 57 expo-router is no longer built
 // on react-navigation, so @react-navigation/native's useIsFocused finds no
 // NavigationContainer and throws.
-import { useIsFocused } from "expo-router";
+import { useFocusEffect, useIsFocused } from "expo-router";
 import { useEventListener } from "expo";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 import { createVideoPlayer, VideoView, type VideoPlayer as ExpoVideoPlayer } from "expo-video";
 import { hlsUrlFor } from "@/sdk";
@@ -85,6 +85,30 @@ export function VideoPlayer({
   const isFocused = useIsFocused();
   const shouldPlay = !paused && isFocused;
 
+  // Belt-and-suspenders: ALSO pause imperatively on the blur event itself —
+  // this fires even if the focus change never re-renders this component.
+  useFocusEffect(
+    useCallback(() => {
+      const p = playerRef.current;
+      if (p && shouldPlayRef.current) {
+        try {
+          p.play();
+        } catch {
+          /* released */
+        }
+      }
+      return () => {
+        if (__DEV__) console.log(`[video ${playbackId}] blur → pause`);
+        try {
+          playerRef.current?.pause();
+        } catch {
+          /* released */
+        }
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
+
   // A play() issued while the HLS source is still "loading" can get dropped —
   // re-issue it the moment the stream becomes ready. Also surface player
   // errors in the Metro console instead of failing silently.
@@ -100,6 +124,11 @@ export function VideoPlayer({
   }, [player, muted]);
 
   useEffect(() => {
+    if (__DEV__) {
+      console.log(
+        `[video ${playbackId}] ${shouldPlay ? "PLAY" : "PAUSE"} (status=${player.status}, playing=${String(player.playing)})`,
+      );
+    }
     if (!shouldPlay) {
       // Never touch a player that isn't actually playing — pause() on a
       // still-loading source wedges expo-video's command queue.

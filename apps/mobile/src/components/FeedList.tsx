@@ -1,5 +1,6 @@
 import { LegendList } from "@legendapp/list";
 import type { ReactElement } from "react";
+import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 
 interface ViewableInfo<T> {
   viewableItems: { item: T; index: number | null; isViewable: boolean }[];
@@ -14,6 +15,8 @@ interface FeedListProps<T> {
   onEndReached?: () => void;
   onViewableItemsChanged?: (info: ViewableInfo<T>) => void;
   viewabilityConfig?: { itemVisiblePercentThreshold?: number };
+  /** Raw scroll passthrough — the feed derives the active page from offset. */
+  onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 /**
@@ -28,6 +31,7 @@ export function FeedList<T>({
   onEndReached,
   onViewableItemsChanged,
   viewabilityConfig,
+  onScroll,
 }: FeedListProps<T>) {
   return (
     <LegendList
@@ -45,6 +49,7 @@ export function FeedList<T>({
       onEndReachedThreshold={0.5}
       onViewableItemsChanged={onViewableItemsChanged as never}
       viewabilityConfig={viewabilityConfig}
+      onScroll={onScroll}
     />
   );
 }
