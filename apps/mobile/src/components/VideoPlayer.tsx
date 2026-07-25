@@ -66,7 +66,10 @@ export function VideoPlayer({
 
   useEffect(() => {
     if (!shouldPlay) {
-      player.pause();
+      // Never touch a player that isn't actually playing — pause() on a
+      // still-loading source wedges expo-video's command queue (this is what
+      // froze the feed: the pre-active render paused loading players).
+      if (player.playing) player.pause();
       return;
     }
     // Restart from the top when RE-activated — but never seek while the HLS
@@ -77,6 +80,18 @@ export function VideoPlayer({
     }
     player.play();
   }, [player, shouldPlay]);
+
+  // expo-video releases the native player lazily after unmount — audio can
+  // keep playing behind the next screen. Stop it explicitly on unmount.
+  useEffect(() => {
+    return () => {
+      try {
+        player.pause();
+      } catch {
+        /* already released */
+      }
+    };
+  }, [player]);
 
   return (
     <View style={[StyleSheet.absoluteFill, style]}>

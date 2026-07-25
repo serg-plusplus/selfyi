@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 import { useFeed, type Video } from "@/sdk";
 import { EmptyState } from "@/components/EmptyState";
@@ -11,11 +11,11 @@ export default function FeedScreen() {
   const { data, isLoading, fetchNextPage, hasNextPage } = useFeed();
   const videos = data?.pages.flatMap((p) => p.items) ?? [];
   const { height } = useWindowDimensions();
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!activeId && videos[0]) setActiveId(videos[0].id);
-  }, [videos, activeId]);
+  // IMPORTANT: derive the initial active item synchronously. With a `null`
+  // first render every card was paused → pause() hit still-loading players
+  // and wedged them (the feed froze while the single-video screen played).
+  const [activeIdState, setActiveId] = useState<string | null>(null);
+  const activeId = activeIdState ?? videos[0]?.id ?? null;
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: { item: Video; isViewable: boolean }[] }) => {
@@ -38,6 +38,7 @@ export default function FeedScreen() {
     0,
     videos.findIndex((v) => v.id === activeId),
   );
+
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
