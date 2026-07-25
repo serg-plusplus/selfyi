@@ -1,0 +1,26 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 829ed5f9ae95b3e3d0b2eb9c5a68346bb0cecc8c..6cd8f4aed03016de412be502f3e4e99219591266 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -2150,7 +2150,7 @@ async function initIDKit() {
+   }
+   wasmInitPromise = (async () => {
+     try {
+-      await __wbg_init();
++      await __wbg_init({ module_or_path: globalThis.__IDKIT_WASM_MODULE__ });
+       wasmInitialized = true;
+     } catch (error) {
+       wasmInitPromise = null;
+diff --git a/dist/index.js b/dist/index.js
+index b49c7f1310f06e68aba3d4a6bc299ad51285eae7..aa02327b85fc24428442b19091c12ab8fbbc68b7 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -2147,7 +2147,7 @@ async function initIDKit() {
+   }
+   wasmInitPromise = (async () => {
+     try {
+-      await __wbg_init();
++      await __wbg_init({ module_or_path: globalThis.__IDKIT_WASM_MODULE__ });
+       wasmInitialized = true;
+     } catch (error) {
+       wasmInitPromise = null;
