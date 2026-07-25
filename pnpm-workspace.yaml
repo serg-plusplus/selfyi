@@ -5,3 +5,5 @@ onlyBuiltDependencies:
   - esbuild
   - sharp
   - workerd
+patchedDependencies:
+  '@worldcoin/idkit-core@4.1.8': patches/@worldcoin__idkit-core@4.1.8.patch

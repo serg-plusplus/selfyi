@@ -1,3 +1,6 @@
+// MUST be first: registers the precompiled IDKit WASM module before any
+// idkit-core code can attempt its (Worker-incompatible) default init.
+import "./idkit-wasm";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
