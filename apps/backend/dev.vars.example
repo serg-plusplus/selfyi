@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  apps/backend/.dev.vars  —  LOCAL backend config for `wrangler dev`
+#
+#  Copy this file to `.dev.vars` (gitignored) and fill in real values:
+#      cp apps/backend/dev.vars.example apps/backend/.dev.vars
+#
+#  Production values are set with `wrangler secret put <NAME>` (secrets) and
+#  wrangler.toml [vars] (non-secrets). See ENVIRONMENT.md.
+# ─────────────────────────────────────────────────────────────────────────
+
+# HS256 session signing key.  Generate:  openssl rand -base64 48
+JWT_SECRET="dev-only-change-me-min-32-chars-xxxxxxxxxxxxxxxx"
+
+# ── Cloudflare Stream ────────────────────────────────────────────────────
+STREAM_ACCOUNT_ID="<CF_ACCOUNT_ID>"            # Cloudflare dashboard → account id
+STREAM_CUSTOMER_CODE="<STREAM_CUSTOMER_CODE>"  # Stream → the customer-XXXX code
+STREAM_API_TOKEN="<CF_STREAM_API_TOKEN>"       # API token with Stream:Edit
+STREAM_WEBHOOK_SECRET="<STREAM_WEBHOOK_SECRET>"# printed when you create the webhook
+
+# ── World ID (Developer Portal → your app) ───────────────────────────────
+WORLD_APP_ID="app_xxxxxxxxxxxxxxxx"            # app id
+WORLD_RP_ID="rp_xxxxxxxxxxxxxxxx"              # RP id
+WORLD_ACTION="go-selfie"                     # action (must match nothing client-side — server-only now)
+WORLD_ENV="staging"                            # "staging" for dev, "production" for prod
+APP_SCHEME="selfie"                            # default return_to deep-link scheme
+# RP signing key (hex) from the Developer Portal. NEVER commit / never ship to client.
+WORLD_RP_SIGNING_KEY="<WORLD_RP_SIGNING_KEY_HEX>"
+# "mock" skips World App + bridge entirely (pairs with EXPO_PUBLIC_WORLD_MOCK=1).
+# NEVER "mock" in prod.
+WORLD_VERIFY_MODE="mock"
+
+# ── Seed script (scripts/seed.ts) ────────────────────────────────────────
+# Free key: https://www.pexels.com/api/  (register → instant key)
+PEXELS_API_KEY="<PEXELS_API_KEY>"
+
+# ── CORS (dev) ───────────────────────────────────────────────────────────
+CORS_ORIGINS="http://localhost:8081"

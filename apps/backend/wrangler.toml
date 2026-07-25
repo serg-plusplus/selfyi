@@ -1,0 +1,58 @@
+# Selfie MVP backend — Cloudflare Worker.
+# Stack: Hono + tRPC, D1 (primary store), KV (feed cache), Stream (video).
+
+name = "selfie-mvp-backend"
+main = "src/index.ts"
+compatibility_date = "2025-01-09"
+compatibility_flags = ["nodejs_compat"]
+
+# ----------------------------------------------------------------------------
+# Bindings
+# ----------------------------------------------------------------------------
+
+# Primary database. Create once:
+#   wrangler d1 create selfie-db
+# then paste the printed database_id below and run the migration:
+#   pnpm --filter @selfie/backend db:migrate:remote   (and :local for dev)
+[[d1_databases]]
+binding = "DB"
+database_name = "selfie-db"
+database_id = "<D1_DATABASE_ID>"
+
+# Feed first-page cache + mock World ID sessions. Create once:
+#   wrangler kv namespace create KV
+[[kv_namespaces]]
+binding = "KV"
+id = "<KV_NAMESPACE_ID>"
+
+# Durable Object: live World ID bridge sessions (holds the in-memory bridge
+# request, polls every 2s via alarm, verifies the proof server-side).
+[[durable_objects.bindings]]
+name = "WORLD_ID_SESSION"
+class_name = "WorldIdSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["WorldIdSession"]
+
+# ----------------------------------------------------------------------------
+# Vars (non-secret). Secrets are set via `wrangler secret put <NAME>`:
+#   JWT_SECRET, STREAM_API_TOKEN, STREAM_WEBHOOK_SECRET, WORLD_RP_SIGNING_KEY
+# Local dev reads everything from .dev.vars (see dev.vars.example).
+# ----------------------------------------------------------------------------
+[vars]
+ENVIRONMENT = "production"
+STREAM_ACCOUNT_ID = "<CF_ACCOUNT_ID>"
+STREAM_CUSTOMER_CODE = "<STREAM_CUSTOMER_CODE>"
+# World ID (Developer Portal → your app):
+WORLD_APP_ID = "<WORLD_APP_ID>"            # app_xxxxxxxx
+WORLD_RP_ID = "<WORLD_RP_ID>"              # rp_xxxxxxxx
+WORLD_ACTION = "go-selfie"               # the action configured in the portal
+WORLD_ENV = "production"                   # "staging" | "production"
+APP_SCHEME = "selfie"                      # default return_to deep-link scheme
+# "live" → real bridge + proof verification; "mock" → skip World App entirely
+# (dev only — pairs with EXPO_PUBLIC_WORLD_MOCK=1 on the client).
+WORLD_VERIFY_MODE = "live"
+
+[observability]
+enabled = true

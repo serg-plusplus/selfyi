@@ -1,0 +1,42 @@
+{
+  "name": "@selfie/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "./dist-types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-types/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:migrate:local": "wrangler d1 execute selfie-db --local --file=migrations/0001_init.sql",
+    "db:migrate:remote": "wrangler d1 execute selfie-db --remote --file=migrations/0001_init.sql",
+    "seed": "tsx scripts/seed.ts",
+    "seed:apply:local": "wrangler d1 execute selfie-db --local --file=seed/seed.sql",
+    "seed:apply:remote": "wrangler d1 execute selfie-db --remote --file=seed/seed.sql",
+    "clean": "rimraf dist dist-types .turbo .wrangler"
+  },
+  "dependencies": {
+    "@selfie/common": "workspace:*",
+    "@trpc/server": "^11.0.0",
+    "@worldcoin/idkit-core": "4.1.8",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.6.15",
+    "jose": "^5.9.6",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.99.0"
+  }
+}
