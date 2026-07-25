@@ -24,7 +24,14 @@ export async function verifyProofV4(env: Env, result: IDKitResult): Promise<Veri
   const base = VERIFY_API_BASE[env.WORLD_ENV] ?? VERIFY_API_BASE.production;
   const res = await fetch(`${base}/api/v4/verify/${env.WORLD_RP_ID}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      // Workers fetch sends NO User-Agent by default and the portal's WAF
+      // 403s UA-less requests (verified empirically — same body: with UA →
+      // 400 validation JSON, without UA → 403 Forbidden).
+      "User-Agent": "selfie-mvp-backend/0.1 (Cloudflare Workers)",
+      Accept: "application/json",
+    },
     body: JSON.stringify(result),
   });
   const text = await res.text();
