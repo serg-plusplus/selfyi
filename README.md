@@ -1,4 +1,4 @@
-# Selfie MVP
+# Selfie
 
 Humans-only TikTok-style video app: **World ID Selfie Check** gate → vertical
 video feed → record with the native camera → **Connect** with people →
@@ -109,7 +109,7 @@ https://simulator.worldcoin.org.
 npm i -g eas-cli && eas login          # neutral Expo account (name shows in URLs)
 cd apps/mobile && eas init             # writes EAS_PROJECT_ID
 # point EXPO_PUBLIC_API_BASE_URL at the DEPLOYED Worker first — env is baked in
-eas update --branch main --message "mvp"
+eas update --branch main --message "eas"
 ```
 
 Tester link/QR (opens straight in Expo Go):

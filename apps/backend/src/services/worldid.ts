@@ -29,7 +29,7 @@ export async function verifyProofV4(env: Env, result: IDKitResult): Promise<Veri
       // Workers fetch sends NO User-Agent by default and the portal's WAF
       // 403s UA-less requests (verified empirically — same body: with UA →
       // 400 validation JSON, without UA → 403 Forbidden).
-      "User-Agent": "selfie-mvp-backend/0.1 (Cloudflare Workers)",
+      "User-Agent": "selfie-backend/0.1 (Cloudflare Workers)",
       Accept: "application/json",
     },
     body: JSON.stringify(result),

@@ -74,7 +74,7 @@ real World ID flow.
 
 | Value | Where | How to get |
 |---|---|---|
-| `EXPO_PUBLIC_API_BASE_URL` | `.env.development` | local Worker (`http://<mac-ip>:8787`) or deployed `https://selfie-mvp-backend.<subdomain>.workers.dev`. **Must be the deployed URL before `eas update`** — env is baked into the published bundle |
+| `EXPO_PUBLIC_API_BASE_URL` | `.env.development` | local Worker (`http://<mac-ip>:8787`) or deployed `https://selfie-backend.<subdomain>.workers.dev`. **Must be the deployed URL before `eas update`** — env is baked into the published bundle |
 | `<EAS_PROJECT_ID>` | `.env.development` | `eas init` (use a **neutral** Expo account — its name shows in URLs) |
 | Tester link/QR | share manually | `https://qr.expo.dev/eas-update?projectId=<EAS_PROJECT_ID>&runtimeVersion=exposdk:57.0.0&channel=main` (append `&format=url` for a plain link). Testers just need the free Expo Go app |
 | Bundle id `com.selfyi.selfie` | `app.config.ts` | already set (D10); only used if you ever leave Expo Go for standalone builds |

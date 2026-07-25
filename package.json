@@ -1,8 +1,8 @@
 {
-  "name": "selfie-mvp",
+  "name": "selfyi",
   "version": "0.1.0",
   "private": true,
-  "description": "Selfie MVP — humans-only TikTok-style video app: World ID selfie-check gate, Cloudflare Workers + D1 + KV + Stream backend, Expo mobile client, tRPC end-to-end.",
+  "description": "Selfie — humans-only TikTok-style video app: World ID selfie-check gate, Cloudflare Workers + D1 + KV + Stream backend, Expo mobile client, tRPC end-to-end.",
   "packageManager": "pnpm@10.11.0",
   "engines": {
     "node": ">=20"

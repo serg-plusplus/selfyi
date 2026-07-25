@@ -29,7 +29,7 @@ app.use("*", cors({
   credentials: true,
 }));
 
-app.get("/", (c) => c.json({ ok: true, service: "selfie-mvp-backend", env: c.env.ENVIRONMENT }));
+app.get("/", (c) => c.json({ ok: true, service: "selfie-backend", env: c.env.ENVIRONMENT }));
 
 // All app traffic goes through tRPC (native fetch adapter mounted on Hono).
 app.all("/trpc/*", (c) =>

@@ -8,7 +8,6 @@ import { UserHandle } from "./UserHandle";
 /**
  * Feed video overlay (Decision 13.3): @username pill bottom-left — tap →
  * public profile (the "+" hints at adding the person). No likes/comments/
- * share in the MVP. Sound is always on (mute toggle disabled for now).
  */
 export function VideoOverlay({ video }: { video: Video }) {
   const router = useRouter();

@@ -1,4 +1,7 @@
-import { useIsFocused } from "@react-navigation/native";
+// NOTE: must come from expo-router — in SDK 57 expo-router is no longer built
+// on react-navigation, so @react-navigation/native's useIsFocused finds no
+// NavigationContainer and throws.
+import { useIsFocused } from "expo-router";
 import { useEventListener } from "expo";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";

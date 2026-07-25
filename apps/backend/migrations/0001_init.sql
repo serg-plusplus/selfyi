@@ -1,4 +1,4 @@
--- Selfie MVP — authoritative D1 (SQLite) schema.
+-- Selfie — authoritative D1 (SQLite) schema.
 -- Apply: pnpm --filter @selfie/backend db:migrate:local   (dev)
 --        pnpm --filter @selfie/backend db:migrate:remote  (prod)
 

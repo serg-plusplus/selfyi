@@ -1,4 +1,4 @@
-# Selfie MVP backend — Cloudflare Worker.
+# Selfie backend — Cloudflare Worker.
 # Stack: Hono + tRPC, D1 (primary store), KV (feed cache), Stream (video).
 
 name = "selfyi"

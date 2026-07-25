@@ -22,7 +22,7 @@ import { timeAgo } from "@/lib/format";
  * - incoming pending → Approve / Decline
  * - outgoing pending → "Requested"
  * - approved → tap → the other person's contacts (auto-revealed on approve)
- * Refreshes on tab focus — no push notifications in the MVP.
+ * Refreshes on tab focus — no push notifications in the app.
  */
 export default function InboxScreen() {
   const query = useInbox();

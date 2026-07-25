@@ -37,7 +37,7 @@ The code is done and typechecks; every `<PLACEHOLDER>` below also appears in
 - [x] Apply schema: `pnpm --filter @selfie/backend db:migrate:local` and
       `db:migrate:remote`
 - [x] Deploy: `pnpm --filter @selfie/backend deploy` → note the
-      `https://selfie-mvp-backend.<you>.workers.dev` URL
+      `https://selfie-backend.<you>.workers.dev` URL
 - [x] Local dev config: `cp apps/backend/dev.vars.example apps/backend/.dev.vars`
       and fill the same values
 
@@ -95,7 +95,7 @@ need the portal values:
       `.env.development` as `EAS_PROJECT_ID`
 - [ ] Make sure `EXPO_PUBLIC_API_BASE_URL` points at the **deployed Worker**
       (env vars are baked into the published bundle!)
-- [ ] Publish: `eas update --branch main --message "mvp"`
+- [ ] Publish: `eas update --branch main --message "eas"`
 - [ ] Make a tester QR/link (targets Expo Go):
       `https://qr.expo.dev/eas-update?projectId=<EAS_PROJECT_ID>&runtimeVersion=exposdk:57.0.0&channel=main`
       (append `&format=url` to get a plain link instead of an SVG)
@@ -105,9 +105,9 @@ need the portal values:
       bundle lives on Expo's CDN, the backend is the deployed Cloudflare
       Worker. Laptop is only needed at the moment you publish an update.
 - [ ] Note: the update URL is public (anyone with the link can open it) and
-      Expo Go shows "running in Expo Go" chrome — acceptable for an MVP.
+      Expo Go shows "running in Expo Go" chrome — acceptable for an app.
 
-## Phase 6 — Verify the MVP
+## Phase 6 — Verify the app
 
 - [ ] Walk the acceptance checklist in [SPEC.md](./SPEC.md) §9 end-to-end
 

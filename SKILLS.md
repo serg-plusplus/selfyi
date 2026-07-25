@@ -1,6 +1,6 @@
 # Agent Skills for this repo
 
-Skills an AI coding agent should have installed when working on `selfie-mvp`.
+Skills an AI coding agent should have installed when working on `selfie`.
 All entries are popular/official sources (Decision 11: nothing is vendored
 into `~/.agents/skills`; install per-project or per-user as you prefer).
 

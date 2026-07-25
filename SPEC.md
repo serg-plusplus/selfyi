@@ -1,4 +1,4 @@
-# Selfie MVP — Specification
+# Selfie — Specification
 
 A humans-only, TikTok-style video app. Every user passes a **World ID Selfie
 Check** before seeing anything. The feed is simply *all videos, newest →
@@ -6,14 +6,14 @@ oldest*. Instead of likes/comments/DMs there is exactly one social primitive:
 **Connect** — a mutual-approval handshake that reveals Instagram/WhatsApp
 contacts.
 
-This document is the authoritative spec for the MVP. Decisions referenced as
+This document is the authoritative spec for the app. Decisions referenced as
 "(D#)" were locked in the planning interview.
 
 ---
 
 ## 1. Product scope
 
-### In scope (the whole MVP)
+### In scope
 
 | # | Feature |
 |---|---------|
@@ -38,7 +38,7 @@ names, captions, avatars upload, settings screens, pull-to-refresh, MMKV,
 VisionCamera, Reanimated. (One DO exists: `WorldIdSession` for the World ID
 bridge — backend-only, see §3.)
 
-Known accepted risks: unlimited connect re-requests (spam vector, post-MVP);
+Known accepted risks: unlimited connect re-requests (spam vector);
 `WORLD_VERIFY_MODE=mock` must never ship in a production Worker.
 
 ---
