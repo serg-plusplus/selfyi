@@ -1,7 +1,7 @@
 # Selfie MVP backend — Cloudflare Worker.
 # Stack: Hono + tRPC, D1 (primary store), KV (feed cache), Stream (video).
 
-name = "selfie-mvp-backend"
+name = "selfyi"
 main = "src/index.ts"
 compatibility_date = "2025-01-09"
 compatibility_flags = ["nodejs_compat"]
