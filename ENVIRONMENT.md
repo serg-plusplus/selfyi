@@ -34,7 +34,9 @@ Secrets in prod: `wrangler secret put <NAME>`. Local dev: `apps/backend/.dev.var
 Mobile needs only `EXPO_PUBLIC_WORLD_MOCK` (dev toggle). `EXPO_PUBLIC_WORLD_APP_ID`
 / `EXPO_PUBLIC_WORLD_ACTION` are no longer used by the client flow.
 
-## CI / GitHub Actions (`.github/workflows/deploy-backend.yml`)
+## CI / GitHub Actions
+
+### Backend (`.github/workflows/deploy-backend.yml`)
 
 Push to `main` auto-deploys the Worker. The workflow substitutes the
 `<PLACEHOLDER>` tokens in `apps/backend/wrangler.toml` from repo **Actions secrets**:
@@ -46,6 +48,21 @@ Push to `main` auto-deploys the Worker. The workflow substitutes the
 | `D1_DATABASE_ID`, `KV_NAMESPACE_ID` | binding ids |
 | `STREAM_CUSTOMER_CODE`, `WORLD_APP_ID`, `WORLD_RP_ID` | vars placeholders |
 | `JWT_SECRET`, `STREAM_API_TOKEN`, `STREAM_WEBHOOK_SECRET`, `WORLD_RP_SIGNING_KEY` | optional — synced to Worker secrets after deploy (skipped when unset) |
+
+### Mobile (`.github/workflows/eas-update.yml`)
+
+Push to `main` publishes an EAS Update to **channel `main`** (Expo Go delivery,
+no builds). `EXPO_PUBLIC_*` values are baked into the published bundle.
+
+| GitHub secret | Purpose |
+|---|---|
+| `EXPO_TOKEN` | EAS auth — expo.dev → Account settings → Access tokens |
+| `EAS_PROJECT_ID` | updates URL + `extra.eas.projectId` |
+| `EXPO_PUBLIC_API_BASE_URL` | **deployed** Worker URL (`https://…workers.dev`) — CI rejects non-https |
+| `EXPO_PUBLIC_STREAM_CUSTOMER_CODE` | Stream `customer-XXXX` code |
+
+`EXPO_PUBLIC_WORLD_MOCK` is never set in CI — published bundles always use the
+real World ID flow.
 
 ## Pexels (seed only)
 

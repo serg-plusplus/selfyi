@@ -1,0 +1,98 @@
+# Publishes the mobile app to testers via EAS Update on every push to main.
+# Delivery model (Decision 2): Expo Go + `eas update` — no native builds.
+# Testers open the QR/link from ENVIRONMENT.md (channel=main) in Expo Go.
+#
+# Required GitHub secrets (repo → Settings → Secrets and variables → Actions):
+#   EXPO_TOKEN                        expo.dev → Account settings → Access tokens
+#   EAS_PROJECT_ID                    from `eas init` (baked into updates URL)
+#   EXPO_PUBLIC_API_BASE_URL          deployed Worker URL (https://…workers.dev)
+#                                     — baked into the JS bundle at publish time!
+#   EXPO_PUBLIC_STREAM_CUSTOMER_CODE  Cloudflare Stream customer-XXXX code
+#
+# NOTE: EXPO_PUBLIC_WORLD_MOCK is deliberately NOT set here — published
+# bundles must always run the real World ID flow (mock is local-dev only).
+
+name: EAS Update (mobile)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "packages/common/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/eas-update.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: eas-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Publish EAS Update
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Check required secrets
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+          EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+          EXPO_PUBLIC_STREAM_CUSTOMER_CODE: ${{ secrets.EXPO_PUBLIC_STREAM_CUSTOMER_CODE }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in EXPO_TOKEN EAS_PROJECT_ID EXPO_PUBLIC_API_BASE_URL EXPO_PUBLIC_STREAM_CUSTOMER_CODE; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub secret: $name"
+              missing=1
+            fi
+          done
+          case "$EXPO_PUBLIC_API_BASE_URL" in
+            https://*) ;;
+            *) echo "::error::EXPO_PUBLIC_API_BASE_URL must be the deployed https:// Worker URL (it is baked into the published bundle)"; missing=1 ;;
+          esac
+          exit $missing
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck mobile
+        run: pnpm --filter @selfie/mobile typecheck
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: pnpm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: "Publish update (channel: main)"
+        working-directory: apps/mobile
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+          EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+          EXPO_PUBLIC_STREAM_CUSTOMER_CODE: ${{ secrets.EXPO_PUBLIC_STREAM_CUSTOMER_CODE }}
+        run: |
+          eas update \
+            --channel main \
+            --message "${GITHUB_SHA::7}: $(git log -1 --pretty=%s | head -c 200)" \
+            --non-interactive
+
+      - name: Tester link
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+        run: |
+          echo "### EAS Update published :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Expo Go link/QR for testers:" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://qr.expo.dev/eas-update?projectId=${EAS_PROJECT_ID}&runtimeVersion=exposdk:57.0.0&channel=main" >> "$GITHUB_STEP_SUMMARY"
