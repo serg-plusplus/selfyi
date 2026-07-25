@@ -18,6 +18,7 @@ function RootNavigator() {
         contentStyle: { backgroundColor: "#000" },
       }}
     >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="verify" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />

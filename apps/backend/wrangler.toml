@@ -4,7 +4,12 @@
 name = "selfyi"
 main = "src/index.ts"
 compatibility_date = "2025-01-09"
-compatibility_flags = ["nodejs_compat"]
+# enable_nodejs_process_v2: full Node-like `process` (incl. process.versions.node).
+# Required by @worldcoin/idkit-server's isServerEnvironment() guard — without it
+# signRequest() throws "can only be used in Node.js environments" on Workers.
+# (Default-on from compat date 2025-09-15, but our local workerd predates that,
+# so we keep the date and opt in explicitly.)
+compatibility_flags = ["nodejs_compat", "enable_nodejs_process_v2"]
 
 # ----------------------------------------------------------------------------
 # Bindings

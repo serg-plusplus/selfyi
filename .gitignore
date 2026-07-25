@@ -8,10 +8,14 @@ dist-types/
 .turbo/
 *.tsbuildinfo
 
+# seed
+seed/
+
 # cloudflare
 .wrangler/
 .dev.vars
 .dev.vars.*
+
 
 # expo / react-native
 .expo/
