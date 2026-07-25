@@ -9,7 +9,7 @@ import type { ExpoConfig, ConfigContext } from "expo/config";
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Selfie",
-  slug: "selfie",
+  slug: "selfieapp",
   scheme: "selfie",
   version: "1.0.0",
   orientation: "portrait",
