@@ -5,7 +5,7 @@ import { useIsFocused } from "expo-router";
 import { useEventListener } from "expo";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
+import { createVideoPlayer, VideoView, type VideoPlayer as ExpoVideoPlayer } from "expo-video";
 import { hlsUrlFor } from "@/sdk";
 
 interface VideoPlayerProps {
@@ -19,8 +19,16 @@ interface VideoPlayerProps {
 
 /**
  * Thin wrapper over expo-video (Expo Go compatible — no custom native code).
- * Builds the Stream HLS URL from the playback id; play/pause via the `paused`
- * prop so the player stays a one-file swap.
+ *
+ * The player lifecycle is managed BY HAND via createVideoPlayer instead of
+ * useVideoPlayer: the hook keys the player by source, so a recycled feed card
+ * (new playbackId) silently creates a NEW player and release()s the old one
+ * WITHOUT pausing. The released native AVPlayer keeps playing until deferred
+ * deallocation — ghost audio — and hogs one of iOS's few hardware video
+ * decoders, starving the next card's player. Here instead:
+ *   • one stable native player per mounted card,
+ *   • source swaps via pause() + replaceAsync() on the SAME player,
+ *   • deterministic pause() → release() on unmount (in that order).
  */
 export function VideoPlayer({
   playbackId,
@@ -31,19 +39,46 @@ export function VideoPlayer({
   style,
 }: VideoPlayerProps) {
   const url = hlsUrlFor(playbackId);
-  const player = useVideoPlayer(url, (p) => {
-    p.loop = repeat;
-  });
 
-  // FeedList recycles items (recycleItems) but useVideoPlayer ignores source
-  // changes after creation — swap the source explicitly on playbackId change.
+  const playerRef = useRef<ExpoVideoPlayer | null>(null);
+  if (playerRef.current == null) {
+    playerRef.current = createVideoPlayer(url);
+    playerRef.current.loop = repeat;
+  }
+  const player = playerRef.current;
+
+  // Deterministic teardown: stop sound BEFORE releasing the shared object —
+  // release() alone lets the native player play on until GC gets to it.
+  useEffect(() => {
+    return () => {
+      const p = playerRef.current;
+      playerRef.current = null;
+      try {
+        p?.pause();
+      } catch {
+        /* already released */
+      }
+      try {
+        p?.release();
+      } catch {
+        /* already released */
+      }
+    };
+  }, []);
+
+  // FeedList recycles items — swap the source on the SAME player.
   const lastUrl = useRef(url);
   useEffect(() => {
-    if (lastUrl.current !== url) {
-      lastUrl.current = url;
-      void player.replaceAsync(url);
+    if (lastUrl.current === url) return;
+    lastUrl.current = url;
+    try {
+      if (player.playing) player.pause();
+      player.loop = repeat;
+    } catch {
+      /* released */
     }
-  }, [player, url]);
+    void player.replaceAsync(url);
+  }, [player, url, repeat]);
 
   // Pause whenever this screen loses navigation focus (another screen pushed
   // on top, tab switched) — otherwise audio keeps playing behind it.
@@ -67,8 +102,7 @@ export function VideoPlayer({
   useEffect(() => {
     if (!shouldPlay) {
       // Never touch a player that isn't actually playing — pause() on a
-      // still-loading source wedges expo-video's command queue (this is what
-      // froze the feed: the pre-active render paused loading players).
+      // still-loading source wedges expo-video's command queue.
       if (player.playing) player.pause();
       return;
     }
@@ -80,18 +114,6 @@ export function VideoPlayer({
     }
     player.play();
   }, [player, shouldPlay]);
-
-  // expo-video releases the native player lazily after unmount — audio can
-  // keep playing behind the next screen. Stop it explicitly on unmount.
-  useEffect(() => {
-    return () => {
-      try {
-        player.pause();
-      } catch {
-        /* already released */
-      }
-    };
-  }, [player]);
 
   return (
     <View style={[StyleSheet.absoluteFill, style]}>
