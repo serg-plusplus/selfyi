@@ -14,12 +14,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "1.0.0",
   orientation: "portrait",
   userInterfaceStyle: "dark",
+  icon: './icon.png',
   ios: {
     bundleIdentifier: "com.selfyi.selfie",
     supportsTablet: false,
+    icon: './icon.png',
   },
   android: {
     package: "com.selfyi.selfie",
+    adaptiveIcon: {
+      foregroundImage: './icon.png',
+      backgroundColor: '#ffffff',
+    },
   },
   plugins: [
     "expo-router",
