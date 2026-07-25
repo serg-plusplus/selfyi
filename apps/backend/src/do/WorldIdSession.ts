@@ -134,12 +134,17 @@ export class WorldIdSession {
       const status = await this.request.pollOnce();
       if (status.type === "confirmed" && status.result) {
         // SPEC §3.4 — verification happens HERE, never on the client.
-        const ok = await verifyProofV4(this.env, status.result);
-        const nullifier = ok ? extractNullifier(status.result) : null;
-        if (ok && nullifier) {
+        const verdict = await verifyProofV4(this.env, status.result);
+        const nullifier = verdict.ok ? extractNullifier(status.result) : null;
+        if (verdict.ok && nullifier) {
           await this.finish({ ...record, state: "confirmed", nullifierHash: nullifier });
         } else {
-          await this.finish({ ...record, state: "failed", error: "verification_failed" });
+          // Propagate the portal's code so the client alert / logs say WHY
+          // (e.g. verification_failed:max_verifications_reached).
+          const error = verdict.ok
+            ? "verification_failed:no_nullifier"
+            : `verification_failed:${verdict.code}`;
+          await this.finish({ ...record, state: "failed", error });
         }
       } else if (status.type === "failed") {
         await this.finish({ ...record, state: "failed", error: status.error ?? "failed" });
