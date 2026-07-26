@@ -32,7 +32,7 @@ if (!PEXELS_API_KEY || !STREAM_ACCOUNT_ID || !STREAM_API_TOKEN) {
   process.exit(1);
 }
 
-const VIDEOS_PER_USER = 10; // 10 users × 10 videos = 100
+const VIDEOS_PER_USER = 10;
 const MAX_DURATION_SEC = 30;
 
 const PERSONAS = [
@@ -174,7 +174,7 @@ async function main() {
   const userIds: string[] = [];
   for (let i = 0; i < PERSONAS.length; i++) {
     const p = PERSONAS[i]!;
-    const id = monotonicUlid(nowMs - 1000 * 60 * 60 * 24 * 30); // "joined a month ago"
+    const id = monotonicUlid(nowMs - 1000 * 60 * 60 * 24 * 30);
     userIds.push(id);
     const avatar = await findAvatar(p.avatar);
     sql.push(

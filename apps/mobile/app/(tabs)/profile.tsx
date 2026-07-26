@@ -10,6 +10,9 @@ import { EmptyState } from "@/components/EmptyState";
 import { ShareContactModal } from "@/components/ShareContactModal";
 import { theme } from "@/lib/theme";
 
+const AVATAR_SIZE = 88;
+const LOGOUT_SIZE = 38;
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -35,16 +38,20 @@ export default function ProfileScreen() {
               hitSlop={10}
               style={{
                 position: "absolute",
-                top: theme.spacing.lg + 44 - 21, // avatar center (lg pad + 88/2) minus half button
-                right: theme.spacing.lg,
+                top: theme.spacing.lg + AVATAR_SIZE / 2 - LOGOUT_SIZE / 2,
+                left: "50%",
+                marginLeft: AVATAR_SIZE / 2 + theme.spacing.md,
+                width: LOGOUT_SIZE,
+                height: LOGOUT_SIZE,
+                alignItems: "center",
+                justifyContent: "center",
                 backgroundColor: theme.colors.surfaceAlt,
                 borderRadius: theme.radius.full,
-                padding: theme.spacing.sm + 1,
               }}
             >
               <Ionicons name="log-out-outline" size={20} color={theme.colors.text} />
             </Pressable>
-            <Avatar uri={user.avatar_url} name={user.handle} size={88} />
+            <Avatar uri={user.avatar_url} name={user.handle} size={AVATAR_SIZE} />
             <Text style={{ color: theme.colors.text, fontSize: theme.font.xl, fontWeight: "800" }}>
               @{user.handle}
             </Text>

@@ -32,7 +32,7 @@ export const videosRouter = router({
         id: videoId,
         authorId: ctx.userId,
         streamUid: uid,
-        playbackId: uid, // Stream serves HLS off the uid; webhook may refine
+        playbackId: uid,
         status: "processing",
       });
 

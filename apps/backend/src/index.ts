@@ -18,7 +18,7 @@ app.use("*", cors({
       .split(",")
       .map((s: string) => s.trim())
       .filter(Boolean);
-    if (allowed.length === 0) return origin; // permissive when unconfigured (dev)
+    if (allowed.length === 0) return origin;
     return allowed.includes(origin) ? origin : (allowed[0] ?? null);
   },
   allowHeaders: ["Authorization", "Content-Type"],

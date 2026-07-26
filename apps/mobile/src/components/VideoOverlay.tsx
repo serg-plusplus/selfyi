@@ -1,16 +1,20 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Video } from "@/sdk";
 import { theme } from "@/lib/theme";
 import { UserHandle } from "./UserHandle";
 
 export function VideoOverlay({ video }: { video: Video }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <View style={styles.handle} pointerEvents="box-none">
+      <View
+        style={[styles.handle, { bottom: insets.bottom + theme.fab.bottomOffset }]}
+        pointerEvents="box-none"
+      >
         <Pressable
           style={styles.handlePill}
           onPress={() => router.push(`/user/${video.author.handle}`)}
@@ -21,7 +25,7 @@ export function VideoOverlay({ video }: { video: Video }) {
             tappable={false}
             style={{ fontSize: theme.font.lg + 2 }}
           />
-          <Ionicons name="add" size={20} color="rgba(255,255,255,0.9)" />
+          <Text style={styles.plus}>+</Text>
         </Pressable>
       </View>
     </View>
@@ -32,9 +36,17 @@ const styles = StyleSheet.create({
   handle: {
     position: "absolute",
     left: theme.spacing.md,
-    bottom: 128,
     right: 96,
-    flexDirection: "row",
+    height: theme.fab.size,
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+  plus: {
+    color: "rgba(255,255,255,0.95)",
+    fontSize: theme.font.lg + 6,
+    fontWeight: "800",
+    lineHeight: theme.font.lg + 8,
+    marginTop: -1,
   },
   handlePill: {
     flexDirection: "row",

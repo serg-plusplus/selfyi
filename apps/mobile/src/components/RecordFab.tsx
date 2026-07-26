@@ -40,13 +40,13 @@ export function RecordFab() {
   return (
     <Pressable
       onPress={record}
-      style={[styles.fab, { bottom: insets.bottom + 72 }]}
+      style={[styles.fab, { bottom: insets.bottom + theme.fab.bottomOffset }]}
       disabled={fabState === "uploading"}
     >
       {fabState === "uploading" ? (
         <ActivityIndicator color="#fff" />
       ) : (
-        <Logo width={60} height={60} />
+        <Logo width={theme.fab.size} height={theme.fab.size} />
       )}
     </Pressable>
   );
@@ -56,9 +56,9 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: theme.spacing.md,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: theme.fab.size,
+    height: theme.fab.size,
+    borderRadius: theme.fab.size / 2,
     backgroundColor: theme.colors.accent,
     alignItems: "center",
     justifyContent: "center",

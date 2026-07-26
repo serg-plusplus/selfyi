@@ -9,7 +9,7 @@ const ts = (name: string) =>
 export const users = sqliteTable(
   "users",
   {
-    id: text("id").primaryKey(), // ULID
+    id: text("id").primaryKey(),
     worldNullifier: text("world_nullifier").notNull().unique(),
     handle: text("handle").notNull().unique(),
     avatarUrl: text("avatar_url"),
@@ -26,7 +26,7 @@ export const users = sqliteTable(
 export const videos = sqliteTable(
   "videos",
   {
-    id: text("id").primaryKey(), // ULID (also the pagination cursor)
+    id: text("id").primaryKey(),
     authorId: text("author_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -47,7 +47,7 @@ export const videos = sqliteTable(
 export const connections = sqliteTable(
   "connections",
   {
-    id: text("id").primaryKey(), // ULID
+    id: text("id").primaryKey(),
     pairKey: text("pair_key").notNull(),
     requesterId: text("requester_id")
       .notNull()

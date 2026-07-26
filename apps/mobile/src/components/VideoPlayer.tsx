@@ -48,12 +48,10 @@ export function VideoPlayer({
       try {
         instance.pause();
       } catch {
-        /* released */
       }
       try {
         instance.release();
       } catch {
-        /* released */
       }
     };
   }, []);
@@ -94,7 +92,6 @@ export function VideoPlayer({
         try {
           playerRef.current?.pause();
         } catch {
-          /* released */
         }
       };
     }, []),

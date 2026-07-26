@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { config, useAuth } from "@/sdk";
 import { theme } from "@/lib/theme";
+import Logo from "../../../logo.svg";
 
 export default function VerifyScreen() {
   const { status, user, gateState, verifyWithWorldId } = useAuth();
@@ -24,7 +25,10 @@ export default function VerifyScreen() {
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.hero}>
-        <Text style={styles.logo}>Selfie</Text>
+        <View style={styles.logoRow}>
+          <Logo width={52} height={52} />
+          <Text style={styles.logo}>Selfie</Text>
+        </View>
         <Text style={styles.tagline}>Real people. Real videos.</Text>
       </View>
       <View style={styles.footer}>
@@ -55,6 +59,7 @@ export default function VerifyScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.bg, justifyContent: "space-between" },
   hero: { flex: 1, alignItems: "center", justifyContent: "center", gap: theme.spacing.sm },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.md },
   logo: { color: theme.colors.text, fontSize: 48, fontWeight: "900" },
   tagline: { color: theme.colors.textMuted, fontSize: theme.font.lg },
   footer: { padding: theme.spacing.lg, gap: theme.spacing.lg },
