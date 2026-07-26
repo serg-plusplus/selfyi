@@ -22,7 +22,7 @@ mutual-approval handshake that reveals Instagram/WhatsApp contacts.
 | 1 | **World ID gate**: Selfie Check → World App → proof → server-side verify. No proof → no app. |
 | 2 | **Onboarding**: one screen, one field — pick a unique `@username`. Avatar = generated initials. |
 | 3 | **Feed**: vertical pager (snap, autoplay, loop, tap-to-pause). All `ready` videos, newest first, cursor pagination. No pull-to-refresh. |
-| 4 | **Video overlay**: `@username` pill → tap → public profile. Nothing else. |
+| 4 | **Video overlay**: dark `@username` pill + accent `person-add` button — both tap into the public profile, where Connect happens. |
 | 5 | **Record FAB**: always visible. Native camera (max 30 s) → Stream direct upload → spinner → "Published" toast. |
 | 6 | **Profiles**: own (avatar, handle, contacts, logout, 3-col grid) and public (grid + Connect). |
 | 7 | **Connect**: request → Inbox → Approve/Decline. Approve reveals both sides' contacts. Decline is silent. |
@@ -126,6 +126,12 @@ Authoritative DDL: `apps/backend/migrations/0001_init.sql`.
 Connect button states: `null` → **Connect** · `pending/outgoing` →
 **Requested** · `pending/incoming` → **Respond in Inbox** · `approved` →
 **Connected ✓**. Declined rows are returned as `null`.
+
+The feed overlay deliberately carries no connection state and sends nothing:
+feed page 1 is KV-cached and must stay viewer-agnostic, so the `person-add`
+button is an affordance that routes to the profile. If it ever needs to show
+real per-viewer status, that belongs in a separate lightweight query rather
+than extra fields on the cached feed payload.
 
 ## 7. Mobile app
 
