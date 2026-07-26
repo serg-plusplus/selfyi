@@ -1,10 +1,5 @@
-import { LegendList } from "@legendapp/list";
 import type { ReactElement } from "react";
-import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-
-interface ViewableInfo<T> {
-  viewableItems: { item: T; index: number | null; isViewable: boolean }[];
-}
+import { FlatList, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 
 interface FeedListProps<T> {
   data: T[];
@@ -12,8 +7,6 @@ interface FeedListProps<T> {
   keyExtractor: (item: T) => string;
   itemHeight: number;
   onEndReached?: () => void;
-  onViewableItemsChanged?: (info: ViewableInfo<T>) => void;
-  viewabilityConfig?: { itemVisiblePercentThreshold?: number };
   onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
@@ -23,17 +16,13 @@ export function FeedList<T>({
   keyExtractor,
   itemHeight,
   onEndReached,
-  onViewableItemsChanged,
-  viewabilityConfig,
   onScroll,
 }: FeedListProps<T>) {
   return (
-    <LegendList
+    <FlatList
       data={data}
-      renderItem={({ item, index }) => renderItem(item as T, index)}
-      keyExtractor={(item) => keyExtractor(item as T)}
-      estimatedItemSize={itemHeight}
-      recycleItems
+      renderItem={({ item, index }) => renderItem(item, index)}
+      keyExtractor={keyExtractor}
       pagingEnabled
       snapToInterval={itemHeight}
       snapToAlignment="start"
@@ -41,9 +30,17 @@ export function FeedList<T>({
       showsVerticalScrollIndicator={false}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
-      onViewableItemsChanged={onViewableItemsChanged as never}
-      viewabilityConfig={viewabilityConfig}
       onScroll={onScroll}
+      scrollEventThrottle={16}
+      getItemLayout={(_, index) => ({
+        length: itemHeight,
+        offset: itemHeight * index,
+        index,
+      })}
+      initialNumToRender={1}
+      maxToRenderPerBatch={2}
+      windowSize={3}
+      removeClippedSubviews={false}
     />
   );
 }

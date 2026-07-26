@@ -1,8 +1,16 @@
 # Agent Skills for this repo
 
 Skills an AI coding agent should have installed when working on `selfie`.
-All entries are popular/official sources (Decision 11: nothing is vendored
-into `~/.agents/skills`; install per-project or per-user as you prefer).
+All entries are popular/official sources (nothing is vendored into
+`~/.agents/skills`; install per-project or per-user as you prefer).
+
+## House rule: no comments in code
+
+**Do not write comments.** Code must explain itself through descriptive
+names, small functions and explicit types. Anything that genuinely needs
+prose belongs in `SPEC.md`. The only allowed exceptions are functional
+directives (`@ts-expect-error`, `eslint-disable`, `/// <reference>`).
+This applies to new code and to any file you touch.
 
 ## Must-have (match the stack 1:1)
 
@@ -26,5 +34,5 @@ into `~/.agents/skills`; install per-project or per-user as you prefer).
 
 - Browse [skills.sh](https://www.skills.sh) for community skills; prefer the
   official `cloudflare/`, `expo/`, `anthropics/` namespaces above.
-- When Selfie Check exits beta, refresh the World ID skill from the docs —
-  the verify endpoint moves from v2 (`app_id`) to v4 (`rp_id`).
+- When Selfie Check exits beta, refresh the World ID skill from the docs.
+  The verify endpoint is v4 (`POST /api/v4/verify/{rp_id}`).

@@ -1,233 +1,194 @@
 # Selfie — Specification
 
 A humans-only, TikTok-style video app. Every user passes a **World ID Selfie
-Check** before seeing anything. The feed is simply *all videos, newest →
-oldest*. Instead of likes/comments/DMs there is exactly one social primitive:
-**Connect** — a mutual-approval handshake that reveals Instagram/WhatsApp
-contacts.
+Check** before seeing anything. The feed is *all videos, newest → oldest*.
+Instead of likes/comments/DMs there is one social primitive: **Connect** — a
+mutual-approval handshake that reveals Instagram/WhatsApp contacts.
 
-This document is the authoritative spec for the app. Decisions referenced as
-"(D#)" were locked in the planning interview.
+## 1. Conventions
 
----
+- **No comments in code.** Write self-explanatory code: descriptive names,
+  small functions, explicit types. Anything that needs explaining belongs in
+  this document, not in a comment. Exceptions: functional directives only
+  (`@ts-expect-error`, `eslint-disable`).
+- TypeScript end-to-end. `packages/common` holds every payload schema (zod);
+  `AppRouter` types flow backend → mobile with zero codegen.
+- `pnpm typecheck` must be green across all three packages before a commit.
 
-## 1. Product scope
-
-### In scope
+## 2. Product scope
 
 | # | Feature |
 |---|---------|
-| 1 | **World ID gate** (D1): Selfie Check via IDKit deep link → World App → proof → server-side verify. No proof → no app. |
-| 2 | **Onboarding** (D3): one screen, one field — pick a unique `@username`. Avatar = generated initials placeholder. |
-| 3 | **Feed** (D13): vertical TikTok pager (swipe up/down, snap, autoplay, loop, tap-to-pause, mute toggle). All `ready` videos, newest → oldest, cursor pagination. **No pull-to-refresh.** |
-| 4 | **Video overlay**: `@username` bottom-left → tap → public profile. Nothing else. |
-| 5 | **Record FAB** (D6): always visible bottom-right on all tabs. Opens **native iOS camera** (`expo-image-picker`, `videoMaxDuration: 30`). Upload → Stream direct creator upload. FAB spins while uploading; fail → `alert(error)`; success → toast "Published" (tap → own profile). |
-| 6 | **Profiles**: own (avatar, handle, contacts view/edit, logout, 3-col video grid with "Processing" badges) and public (grid + Connect button). |
-| 7 | **Connect** (D8/D9): request → addressee sees it in Inbox → Approve / Decline / ignore. Approve **auto-reveals both sides' contacts** (if entered). Decline is silent; requester's button resets to "Connect" and re-request re-pends the same pair row (fresh timestamp, top of inbox). |
-| 8 | **Share contact**: popup to enter Instagram + WhatsApp usernames **once** (stored on profile, editable from own profile). |
-| 9 | **Inbox**: all connections, newest activity first. Incoming pending → Approve/Decline. Approved → tap → other person's contacts (Instagram opens `instagram.com/<handle>`). Refreshes on tab focus. |
-| 10 | **Mock data** (D7/D12): 10 seeded users ("personas") × ~10 vertical Pexels videos = 100 videos, staggered `created_at`. Mock users are "alive": incoming connects auto-approve after 5–30 s; their contacts are pre-filled with real popular Instagram handles. |
-| 11 | **Video detail**: full-screen player from any grid; owner can delete. |
+| 1 | **World ID gate**: Selfie Check → World App → proof → server-side verify. No proof → no app. |
+| 2 | **Onboarding**: one screen, one field — pick a unique `@username`. Avatar = generated initials. |
+| 3 | **Feed**: vertical pager (snap, autoplay, loop, tap-to-pause). All `ready` videos, newest first, cursor pagination. No pull-to-refresh. |
+| 4 | **Video overlay**: `@username` pill → tap → public profile. Nothing else. |
+| 5 | **Record FAB**: always visible. Native camera (max 30 s) → Stream direct upload → spinner → "Published" toast. |
+| 6 | **Profiles**: own (avatar, handle, contacts, logout, 3-col grid) and public (grid + Connect). |
+| 7 | **Connect**: request → Inbox → Approve/Decline. Approve reveals both sides' contacts. Decline is silent. |
+| 8 | **Share contact**: Instagram + WhatsApp usernames, stored on profile, editable. |
+| 9 | **Inbox**: all connections, newest activity first. Refreshes on tab focus. |
+| 10 | **Mock data**: 10 seeded personas × ~10 Pexels videos. Mock users auto-approve connects after 5–30 s. |
+| 11 | **Video detail**: full-screen player; owner can delete. |
 
-### Explicitly out of scope (removed from the parent project)
+**Out of scope:** likes, comments, follows, DMs, push notifications,
+moderation, geo ranking, OAuth, email, captions, avatar upload, settings.
 
-Likes, comments (incl. video comments), follows, DMs, push notifications,
-notification inbox, view-counter Durable Objects, moderation (Workers AI),
-geo ranking, re-engagement crons, queues, Google/Apple OAuth, email, display
-names, captions, avatars upload, settings screens, pull-to-refresh, MMKV,
-VisionCamera, Reanimated. (One DO exists: `WorldIdSession` for the World ID
-bridge — backend-only, see §3.)
+**Accepted risks:** unlimited connect re-requests (spam vector);
+`WORLD_VERIFY_MODE=mock` must never ship in production.
 
-Known accepted risks: unlimited connect re-requests (spam vector);
-`WORLD_VERIFY_MODE=mock` must never ship in a production Worker.
-
----
-
-## 2. Architecture
+## 3. Architecture
 
 ```
-┌───────────────────────────┐      import type { AppRouter }
-│  apps/mobile (Expo)        │ ───────────────────────────────────┐
-│  expo-router · tRPC client │                                     │
-│  IDKit (World ID session)  │                                     ▼
-└─────────────┬──────────────┘        ┌──────────────────────────────────┐
-              │ HTTPS /trpc (Bearer JWT)│  packages/common                  │
-              ▼                        │  zod schemas · types · constants  │
-┌───────────────────────────┐  uses   │  (single source of truth)         │
-│  apps/backend (CF Worker)  │◄───────►└──────────────────────────────────┘
-│  Hono shell → tRPC          │
-│  ├── D1 (users/videos/conn) │        ┌──────────────┐
-│  ├── KV (feed page-1 cache) │───────►│ CF Stream     │ upload/transcode/HLS
-│  └── /api/webhooks/stream   │◄───────│ (webhook)     │
-└─────────────┬──────────────┘        └──────────────┘
-              ▼
-   World ID verify API  (POST /api/v2/verify/{app_id})
+apps/mobile (Expo)  ──HTTPS /trpc (Bearer JWT)──>  apps/backend (CF Worker)
+     │                                                  ├── D1     users/videos/connections
+     └── packages/common (zod schemas, shared types) ────┤── KV     feed page-1 cache (30 s)
+                                                         ├── DO     WorldIdSession
+                                                         └── Stream direct upload, HLS, webhook
 ```
 
-- **Monorepo** (D4): pnpm + Turborepo. `packages/common` holds every payload
-  schema; backend uses them for input/output validation, mobile for response
-  validation. `AppRouter` type flows backend → mobile with zero codegen.
-- **D1** is the primary store; **KV** caches only the hot cursor-less first
-  feed page (30 s TTL, invalidated on publish/delete).
+- **D1** is the primary store. **KV** caches only the cursor-less first feed
+  page, invalidated on publish/delete.
 - **Stream**: direct creator uploads (bytes never touch the Worker), HLS
-  playback via `customer-<code>.cloudflarestream.com/<uid>/manifest/video.m3u8`,
-  HMAC-verified webhook flips `processing → ready`.
+  playback, HMAC-verified webhook flips `processing → ready`.
 
-## 3. Auth model (D1, D3 — World ID session flow, backend-driven bridge)
+## 4. Auth model — World ID
 
-Invariants (World ID integration spec §0): the RP signing key exists only as
-a Worker secret; proofs are verified only server-side; the client performs
-**zero** World ID crypto — no WebCrypto, no WASM, no native modules, no
-World packages at all (`expo-linking` is the entire client dependency).
+Invariants: the RP signing key exists only as a Worker secret; proofs are
+verified only server-side; the client performs **zero** World ID crypto and
+ships **no** World packages (`expo-linking` is the entire client dependency).
 
 ```
-Expo app                CF Worker                    World bridge / World App
-   |-- worldid.createSession -->|                              |
-   |                     DO WorldIdSession:                    |
-   |                     signRequest (RP key, local)           |
-   |                     IDKit.request().preset(              |
-   |                       selfieCheckLegacy({signal})) -----> |  bridge request
-   |<-- {sessionId, connectorURI}                              |
-   |-- Linking.openURL(connectorURI) ------------------------> |  Selfie Check in World App
-   |-- worldid.getSession (every 2s) -->|                      |
-   |                     DO alarm polls bridge every 2s ------>|
-   |                     confirmed → POST api/v4/verify/{rp_id}|
-   |<-- {state:'confirmed', token, user} (JWT minted here)     |
+Expo app                     CF Worker (WorldIdSession DO)        World App
+   │── worldid.createSession ──>│ signRequest + IDKit.request           │
+   │<── {sessionId, connectorURI}│                                      │
+   │── openURL(connectorURI) ───────────────────────────────────────────>│ Selfie Check
+   │── worldid.getSession (2 s) ─>│ DO alarm polls bridge every 2 s <────│
+   │                              │ confirmed → POST /api/v4/verify/{rp_id}
+   │<── {state, token, user} ─────│ JWT minted here
 ```
 
-1. `worldid.createSession` → the **WorldIdSession Durable Object** signs the
-   RP context (`signRequest` from `@worldcoin/idkit-core/signing` — pure JS)
-   and creates `IDKit.request({…, allow_legacy_proofs: true}).preset(
-   selfieCheckLegacy({ signal: sessionId }))`. The live request object (it
-   holds the bridge AES key) stays in DO memory; state persists in DO storage.
-2. Client opens `connectorURI` → World App runs the Selfie Check (enrollment
-   for new users — there is no in-app selfie SDK).
-3. Client polls `worldid.getSession` every 2 s (5-min client timeout); a
-   deep-link return (`return_to` = client-supplied `Linking.createURL`)
-   pokes an immediate poll. The DO also self-polls via a 2 s alarm (15-min
-   session TTL) — variant B of the integration spec §4, chosen because
-   `idkit-core` cannot reconstruct a request from `(requestId, bridgeKey)`.
-4. On bridge confirmation the DO POSTs the **raw** IDKit result to
-   `https://developer.world.org/api/v4/verify/{rp_id}`; success ⇔
-   `success: true`. The nullifier is extracted (v3 `responses[0].nullifier`;
-   selfieCheckLegacy is a v3 preset).
-5. `worldid.getSession` then upserts the user by nullifier (UNIQUE — one
-   human = one account; a known nullifier is a *returning login*, adapted
-   from spec §3.5 because World ID **is** the login here — no userId exists
-   pre-auth) and returns `{state:'confirmed', token, user}`. JWT →
+1. The DO signs the RP context and creates the bridge request
+   (`selfieCheckLegacy` preset, `allow_legacy_proofs: true`). The live request
+   object holds the bridge AES key and stays in DO memory; state persists in
+   DO storage. Session TTL 15 min.
+2. The client opens `connectorURI`; World App runs the Selfie Check.
+3. The client polls every 2 s; the DO also self-polls via alarm.
+4. On confirmation the DO POSTs the **raw** IDKit result to the verify
+   endpoint (`developer.world.org`, or `staging-developer.worldcoin.org` when
+   `WORLD_ENV=staging`). Success ⇔ `success: true`.
+5. The nullifier (`responses[0].nullifier`) upserts the user — UNIQUE, so one
+   human = one account and a known nullifier is a returning login. JWT →
    SecureStore; `onboarded=false` routes to the handle screen.
-6. Errors (spec §7): user rejection → `failed` with bridge error code;
-   expired RP signature → recreate session; DO eviction → `session_lost` →
-   client retries; client network errors don't change state.
-7. Dev loop: `EXPO_PUBLIC_WORLD_MOCK=1` + `WORLD_VERIFY_MODE=mock` —
-   createSession stores a per-device fake nullifier in KV, getSession
-   confirms instantly. Staging: `WORLD_ENV=staging` + staging `app_id`/`rp_id`.
+6. Errors: user rejection → `failed` with the portal's error code; DO
+   eviction → `session_lost` → client recreates.
+7. Dev loop: `EXPO_PUBLIC_WORLD_MOCK=1` + `WORLD_VERIFY_MODE=mock` skips
+   World App entirely.
 
-Selfie Check properties (spec §6): credential ID 11, issuer Tools for
-Humanity, **Beta**, sybil resistance "some" (face similarity), credential
-valid 90 days. Anti-mass-signup gate, not KYC.
+**Selfie Check**: credential ID 11, issuer Tools for Humanity, Beta,
+valid 90 days. An anti-mass-signup gate, not KYC.
 
-## 4. Data model (D1 database)
+### Worker runtime notes
 
-See `apps/backend/migrations/0001_init.sql` (authoritative DDL).
+- `enable_nodejs_process_v2` compat flag is required — idkit-server's
+  environment check reads `process.versions.node`.
+- The verify request must send a `User-Agent`; the portal's WAF 403s
+  UA-less requests (Workers `fetch` sends none by default).
+- IDKit's WASM cannot self-load on Workers (`import.meta.url` is empty). It is
+  imported as a module and injected via a patch — see
+  `patches/@worldcoin__idkit-core@*.patch` and `src/idkit-wasm.ts`.
+
+## 5. Data model
+
+Authoritative DDL: `apps/backend/migrations/0001_init.sql`.
 
 - **users**: `id` (ULID), `world_nullifier` UNIQUE, `handle` UNIQUE,
-  `avatar_url`, `instagram`, `whatsapp`, `is_mock`, `onboarded`, timestamps.
+  `avatar_url`, `instagram`, `whatsapp`, `is_mock`, `onboarded`.
 - **videos**: `id` (ULID = feed cursor), `author_id`, `stream_uid` UNIQUE,
   `playback_id`, `thumbnail_url`, `duration_sec`,
-  `status ∈ {processing, ready}`, `created_at`, `deleted_at` (soft delete).
+  `status ∈ {processing, ready}`, `deleted_at` (soft delete).
 - **connections**: one row per user pair — `pair_key` UNIQUE
   (`min(id):max(id)`), `requester_id`/`addressee_id` give direction,
-  `status ∈ {pending, approved, declined}`, `auto_approve_at` (mock lazy
-  auto-approve), timestamps. Re-request flips the same row back to `pending`.
+  `status ∈ {pending, approved, declined}`, `auto_approve_at` (mock).
 
-## 5. API surface (tRPC)
+## 6. API surface (tRPC)
 
 | Procedure | Auth | Purpose |
 |---|---|---|
-| `worldid.createSession` | public | create bridge session → `{sessionId, connectorURI}` |
-| `worldid.getSession` | public | poll state; on confirmed → `{token, user}` (login) |
-| `auth.completeOnboarding` | JWT | claim `@handle` (CONFLICT if taken) |
-| `auth.me` | JWT | session bootstrap |
-| `auth.updateContacts` | JWT | store Instagram/WhatsApp (once, editable) |
-| `feed.main` | JWT | all ready videos, newest first (KV-cached page 1) |
-| `feed.user` | JWT | one user's videos (owner sees `processing` too) |
-| `videos.getUploadUrl` | JWT | Stream direct upload + `processing` row |
-| `videos.get` / `videos.delete` | JWT | detail / owner soft-delete |
-| `users.getByHandle` / `getById` | JWT | public profile + viewer-relative connection state |
-| `connections.send` | JWT | connect request (mock addressee → `auto_approve_at` = now + 5–30 s) |
-| `connections.inbox` | JWT | my connections, newest activity first (runs lazy mock auto-approve) |
-| `connections.respond` | JWT | approve / decline (addressee only) |
+| `worldid.createSession` / `getSession` | public | bridge session; on confirmed → `{token, user}` |
+| `auth.completeOnboarding` / `me` / `updateContacts` | JWT | handle claim, bootstrap, contacts |
+| `feed.main` / `feed.user` | JWT | all ready videos / one user's videos |
+| `videos.getUploadUrl` / `get` / `delete` | JWT | Stream upload, detail, owner soft-delete |
+| `users.getByHandle` / `getById` | JWT | public profile + connection state |
+| `connections.send` / `inbox` / `respond` | JWT | request, list, approve/decline |
 | `POST /api/webhooks/stream` | HMAC | Stream "ready" → finalize video |
 
-Connect button state machine (from `users.get*` → `connection`):
-`null` → **Connect** · `pending/outgoing` → **Requested** (disabled) ·
-`pending/incoming` → **Respond in Inbox** · `approved` → **Connected ✓**.
-Declined rows are returned as `null` (invisible to the requester, D9).
+Connect button states: `null` → **Connect** · `pending/outgoing` →
+**Requested** · `pending/incoming` → **Respond in Inbox** · `approved` →
+**Connected ✓**. Declined rows are returned as `null`.
 
-## 6. Mobile app structure
+## 7. Mobile app
 
 ```
 app/
-  verify.tsx          # World ID gate (entry)
-  onboarding.tsx      # @handle picker (once)
-  (tabs)/feed|inbox|profile + _layout (3 tabs + RecordFab overlay)
-  user/[handle].tsx   # public profile + Connect
-  video/[id].tsx      # detail + owner delete
-src/sdk/              # UI-agnostic SDK: trpc, auth (JWT+World ID), upload,
-                      # queries, uiStore (mute/FAB/toast)
-src/components/       # VideoPlayer, FeedList (pager), VideoOverlay, RecordFab,
-                      # ToastHost, ShareContactModal, AuthGate, Avatar, …
+  index.tsx           redirect → feed
+  verify.tsx          World ID gate (entry)
+  onboarding.tsx      @handle picker
+  (tabs)/             feed · inbox · profile + RecordFab overlay
+  user/[handle].tsx   public profile + Connect
+  video/[id].tsx      detail + owner delete
+src/sdk/              trpc, auth, upload, queries, uiStore
+src/components/       VideoPlayer, FeedList, VideoOverlay, RecordFab, …
 ```
 
-**Zero custom native modules** (D2, revised — the app must run in **Expo
-Go**): `expo-video` (player), `expo-image-picker` (native system camera),
-`expo-secure-store` (JWT), everything else pure JS. World ID needs **no
-client packages at all**: the whole bridge/crypto flow lives in the backend
-Durable Object (§3); the client only calls `worldid.createSession`, opens
-`connectorURI` via `expo-linking`, and polls `worldid.getSession`. The gate
-UI states (`idle → opening → awaiting`) are exposed by `useAuth().gateState`.
+**Zero custom native modules** — the app must run in **Expo Go**:
+`expo-video`, `expo-image-picker`, `expo-secure-store`, `react-native-svg`;
+everything else is pure JS.
 
-## 7. Distribution (D2, revised — Expo Go + EAS Update)
+### Video playback rules
 
-- **Daily dev**: `expo start` → scan QR → runs in Expo Go on the phone;
-  hot reload over Metro/Wi-Fi. No Xcode, no prebuild.
-- **Sharing**: `eas update --branch main` publishes the JS bundle; testers
-  open it in Expo Go via a `qr.expo.dev/eas-update` QR
-  (`runtimeVersion=exposdk:<SDK>`, `channel=main`). No Apple/Google accounts,
-  no UDIDs. Caveats: update links are public; env (`EXPO_PUBLIC_*`) is baked
-  in at publish time; `runtimeVersion` policy must stay `sdkVersion`.
-- Fallback if a native module ever becomes unavoidable: `expo prebuild` +
-  EAS Build ad-hoc (100 UDIDs, org name hidden; avoid TestFlight if the
-  Apple org must stay private).
-- Placeholders for all ids live in `ENVIRONMENT.md`; steps in `TODO.md`.
+The feed is the fragile part; these rules are load-bearing:
 
-## 8. Seed (D7/D12)
+- One `VideoPlayer` per card, created with a `null` source and swapped via
+  `replaceAsync`. Never key the player by source — `useVideoPlayer(url)`
+  silently creates a new native player per URL and releases the old one
+  **without pausing it**, which leaks playing "ghost" players.
+- Only the active card ± 1 mounts a player; other cards render their
+  thumbnail. iOS allows only a few concurrent video decoders.
+- Never `pause()` or seek a player whose status is not `readyToPlay` — it
+  wedges the command queue and freezes the first frame.
+- The active card is derived from scroll offset (`round(offsetY / height)`),
+  not from viewability callbacks.
+- Playback is gated on `useIsFocused()` from **expo-router** (SDK 57 dropped
+  react-navigation, so `@react-navigation/native` hooks throw).
 
-`apps/backend/scripts/seed.ts`: Pexels API (portrait, ≤30 s, people/lifestyle
-queries per persona) → **Stream copy-from-URL** (no local downloads) → wait for
-transcode → generate `seed/seed.sql` (10 users + up to 100 videos, hourly
-staggered `created_at`, ULIDs minted to match) → apply with
-`wrangler d1 execute`. Mock contacts: real popular Instagram handles
-(@cristiano, @zendaya, …), fake WhatsApp names.
+## 8. Distribution
 
-## 9. Acceptance checklist
+- **Dev**: `expo start` → QR → Expo Go. No Xcode, no prebuild.
+- **Sharing**: `eas update --channel main`; testers open a
+  `qr.expo.dev/eas-update` link in Expo Go. `runtimeVersion` policy stays
+  `sdkVersion`. `EXPO_PUBLIC_*` is baked in at publish time, so
+  `EXPO_PUBLIC_API_BASE_URL` must be the deployed Worker URL.
+- Both apps deploy from GitHub Actions on push to `main`; `<PLACEHOLDER>`
+  tokens in `wrangler.toml` are injected from Actions secrets.
 
-- [ ] Fresh install → verify screen; cannot reach feed without passing the gate.
+## 9. Seed
+
+`apps/backend/scripts/seed.ts`: Pexels API → Stream copy-from-URL → wait for
+transcode → generate `seed/seed.sql` (10 users + up to 100 videos, staggered
+`created_at`) → apply with `wrangler d1 execute`.
+
+## 10. Acceptance checklist
+
+- [ ] Fresh install → verify screen; feed unreachable without passing the gate.
 - [ ] First login → handle screen; taken handle → friendly error; then feed.
-- [ ] Feed: full-screen snap paging, newest first, autoplay/loop, tap-pause,
-      mute persists across cards, infinite scroll to the oldest video.
-- [ ] Tap `@handle` → public profile grid; Connect → "Requested"; mock user
-      approves in ≤30 s → Inbox shows "connected"; tap → their real Instagram
-      opens in browser.
-- [ ] Incoming mock requests appear in Inbox (seeded); Approve reveals
-      contacts both ways; Decline hides the row and their profile shows
-      "Connect" again.
-- [ ] Share contact popup: entered once, shown on own profile, editable.
-- [ ] FAB → native camera (30 s hard stop) → spinner → toast "Published" →
-      tap → own profile; video shows "Processing", flips to ready after the
-      webhook, then appears at the top of the feed.
+- [ ] Feed: snap paging, newest first, autoplay/loop, tap-pause, infinite
+      scroll; swiping stops the previous video; leaving the screen stops audio.
+- [ ] Tap `@handle` → public profile; Connect → "Requested"; mock user
+      approves in ≤30 s → Inbox → their Instagram opens.
+- [ ] Approve reveals contacts both ways; Decline hides the row.
+- [ ] FAB → native camera (30 s) → toast → own profile; "Processing" flips to
+      ready after the webhook, then appears at the top of the feed.
 - [ ] Owner can delete a video; it disappears from feed + profile.
 - [ ] Relaunch: JWT persists, gate skipped.
-- [ ] `pnpm typecheck` green across all three packages; `wrangler deploy
-      --dry-run` bundles.
+- [ ] `pnpm typecheck` green; `wrangler deploy --dry-run` bundles.
