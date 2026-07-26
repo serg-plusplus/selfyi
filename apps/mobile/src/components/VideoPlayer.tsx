@@ -1,8 +1,7 @@
 import { useFocusEffect, useIsFocused } from "expo-router";
-import { useEventListener } from "expo";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
+import { createVideoPlayer, VideoView, type VideoPlayer as ExpoVideoPlayer } from "expo-video";
 import { hlsUrlFor } from "@/sdk";
 
 interface VideoPlayerProps {
@@ -23,11 +22,8 @@ export function VideoPlayer({
   style,
 }: VideoPlayerProps) {
   const url = hlsUrlFor(playbackId);
-
-  const player = useVideoPlayer(null, (p) => {
-    p.loop = repeat;
-    p.muted = muted;
-  });
+  const [player, setPlayer] = useState<ExpoVideoPlayer | null>(null);
+  const playerRef = useRef<ExpoVideoPlayer | null>(null);
 
   const isFocused = useIsFocused();
   const shouldPlay = !paused && isFocused;
@@ -35,6 +31,35 @@ export function VideoPlayer({
   shouldPlayRef.current = shouldPlay;
 
   useEffect(() => {
+    const instance = createVideoPlayer(null);
+    instance.loop = repeat;
+    instance.muted = muted;
+    playerRef.current = instance;
+    setPlayer(instance);
+
+    const subscription = instance.addListener("statusChange", ({ status, error }) => {
+      if (__DEV__ && error) console.warn(`[video ${playbackId}] ${error.message}`);
+      if (status === "readyToPlay" && shouldPlayRef.current) instance.play();
+    });
+
+    return () => {
+      playerRef.current = null;
+      subscription.remove();
+      try {
+        instance.pause();
+      } catch {
+        /* released */
+      }
+      try {
+        instance.release();
+      } catch {
+        /* released */
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!player) return;
     let cancelled = false;
     player
       .replaceAsync(url)
@@ -49,21 +74,12 @@ export function VideoPlayer({
     };
   }, [player, url, playbackId]);
 
-  useEventListener(player, "statusChange", ({ status, error }) => {
-    if (__DEV__ && error) console.warn(`[video ${playbackId}] ${error.message}`);
-    if (status === "readyToPlay" && shouldPlayRef.current) player.play();
-  });
-
   useEffect(() => {
-    player.muted = muted;
+    if (player) player.muted = muted;
   }, [player, muted]);
 
   useEffect(() => {
-    if (__DEV__) {
-      console.log(
-        `[video ${playbackId}] ${shouldPlay ? "PLAY" : "PAUSE"} status=${player.status} playing=${String(player.playing)}`,
-      );
-    }
+    if (!player) return;
     if (!shouldPlay) {
       if (player.playing) player.pause();
       return;
@@ -76,22 +92,24 @@ export function VideoPlayer({
     useCallback(() => {
       return () => {
         try {
-          player.pause();
+          playerRef.current?.pause();
         } catch {
           /* released */
         }
       };
-    }, [player]),
+    }, []),
   );
 
   return (
     <View style={[StyleSheet.absoluteFill, style]}>
-      <VideoView
-        player={player}
-        style={StyleSheet.absoluteFill}
-        contentFit={resizeMode}
-        nativeControls={false}
-      />
+      {player ? (
+        <VideoView
+          player={player}
+          style={StyleSheet.absoluteFill}
+          contentFit={resizeMode}
+          nativeControls={false}
+        />
+      ) : null}
     </View>
   );
 }

@@ -149,10 +149,17 @@ everything else is pure JS.
 
 The feed is the fragile part; these rules are load-bearing:
 
-- One `VideoPlayer` per card, created with a `null` source and swapped via
-  `replaceAsync`. Never key the player by source — `useVideoPlayer(url)`
-  silently creates a new native player per URL and releases the old one
-  **without pausing it**, which leaks playing "ghost" players.
+- The player lifecycle is owned by the component, not by `useVideoPlayer`:
+  created with `createVideoPlayer(null)` inside a mount effect, source swapped
+  via `replaceAsync`, torn down with **`pause()` then `release()`** in that
+  effect's cleanup. Two reasons this cannot use the hook:
+  `useVideoPlayer(url)` is keyed by source, so it silently creates a new
+  native player per URL and releases the old one *without pausing it*; and its
+  internal cleanup always runs before any of the component's own cleanups, so
+  a pause registered in the component can only ever fire after the player is
+  already released — which is why audio survived leaving a screen.
+- Never create a player during render — a discarded render leaks a native
+  player that plays forever and has no reference to stop it.
 - Only the active card ± 1 mounts a player; other cards render their
   thumbnail. iOS allows only a few concurrent video decoders.
 - Never `pause()` or seek a player whose status is not `readyToPlay` — it
