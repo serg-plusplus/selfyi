@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
     } catch (e) {
       const message =
         e instanceof Error && e.message.includes("taken")
-          ? "That username is taken — try another."
+          ? "That username is taken - try another."
           : "Could not save. Try again.";
       Alert.alert("Oops", message);
     } finally {

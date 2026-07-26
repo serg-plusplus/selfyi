@@ -35,7 +35,7 @@ export default function VerifyScreen() {
         <Text style={styles.explainer}>
           {gateState === "awaiting"
             ? "Finish the Selfie Check in World App, then come back here."
-            : "Selfie is humans-only. Verify once with World ID — a quick selfie check in the World App. No name, no email, no phone number."}
+            : "Selfie is humans-only. Verify once with World ID - a quick selfie check in the World App. No name, no email, no phone number."}
         </Text>
         <Pressable style={styles.button} onPress={verify} disabled={busy}>
           {busy ? (

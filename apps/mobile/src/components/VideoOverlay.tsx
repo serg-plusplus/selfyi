@@ -7,7 +7,8 @@ import type { Video } from "@/sdk";
 import { theme } from "@/lib/theme";
 import { UserHandle } from "./UserHandle";
 
-const CONNECT_SIZE = 42;
+const CONNECT_SIZE = 28;
+const CONNECT_ICON_SIZE = Math.round(CONNECT_SIZE * 0.5);
 
 export function VideoOverlay({ video }: { video: Video }) {
   const router = useRouter();
@@ -55,7 +56,7 @@ export function VideoOverlay({ video }: { video: Video }) {
             />
           </View>
           <Animated.View style={[styles.connect, { transform: [{ scale: pulse }] }]}>
-            <Ionicons name="person-add" size={20} color="#fff" />
+            <Ionicons name="person-add" size={CONNECT_ICON_SIZE} color="#fff" />
           </Animated.View>
         </Pressable>
       </View>

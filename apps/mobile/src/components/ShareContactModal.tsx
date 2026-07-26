@@ -54,7 +54,7 @@ export function ShareContactModal({ visible, onClose }: ShareContactModalProps) 
         <View style={styles.card}>
           <Text style={styles.title}>Share contact</Text>
           <Text style={styles.subtitle}>
-            Entered once — visible to everyone you're connected with.
+            Entered once - visible to everyone you're connected with.
           </Text>
           <TextInput
             style={styles.input}

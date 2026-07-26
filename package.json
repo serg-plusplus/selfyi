@@ -2,7 +2,7 @@
   "name": "selfyi",
   "version": "0.1.0",
   "private": true,
-  "description": "Selfie — humans-only TikTok-style video app: World ID selfie-check gate, Cloudflare Workers + D1 + KV + Stream backend, Expo mobile client, tRPC end-to-end.",
+  "description": "Selfie - best social app to be yourself and meet new people! 🌿",
   "packageManager": "pnpm@10.11.0",
   "engines": {
     "node": ">=20"

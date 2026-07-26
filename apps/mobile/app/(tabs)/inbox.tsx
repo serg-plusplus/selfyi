@@ -76,7 +76,7 @@ function InboxRow({ connection: c, onOpen }: { connection: Connection; onOpen: (
             ? "wants to connect"
             : isOutgoingPending
               ? "request sent"
-              : "connected — tap for contacts"}
+              : "connected - tap for contacts"}
           {"  ·  "}
           {timeAgo(c.updated_at)}
         </Text>
