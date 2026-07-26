@@ -10,6 +10,47 @@
 
 Selfie is a humans-only short-video feed. Live clips from real people — scroll, watch, find someone you'd actually want to know. Every face is checked live, in motion. One person, one account. That's the whole rule.
 
+## Install
+
+You'll also need **World App** for the face check — [world.org/download](https://world.org/download).
+
+### 1. Install Expo Go from TestFlight
+
+**It must be Expo Go for SDK 57.** Older versions will refuse to open the app.
+SDK 57 is not on the App Store, so Expo ships it through their public TestFlight
+beta.
+
+| Expo Go — TestFlight |
+| :--: |
+| <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=10&data=https%3A%2F%2Ftestflight.apple.com%2Fjoin%2FGZJxxfUU" width="200" alt="Expo Go TestFlight QR" /> |
+| [testflight.apple.com/join/GZJxxfUU](https://testflight.apple.com/join/GZJxxfUU) |
+
+Install Apple's TestFlight app first, then open the link, accept the invite and
+install Expo Go.
+
+### 2. Sign in to the demo Expo account
+
+Open Expo Go and log in with the shared demo account:
+
+```
+email:     selfdemo@proton.me
+password:  ethlisbon2026
+```
+
+This step is required — Expo Go only opens projects belonging to the signed-in
+account. It's a throwaway account made for this demo.
+
+### 3. Open Selfie
+
+Scan this from your phone's camera, or open the link below on the device.
+
+| Selfie |
+| :--: |
+| <img src="https://qr.expo.dev/eas-update?projectId=7f20ce77-4753-479a-9ad2-832c1ae9cda8&runtimeVersion=exposdk:57.0.0&channel=main" width="200" alt="Open Selfie in Expo Go" /> |
+| [Open in Expo Go](https://qr.expo.dev/eas-update?projectId=7f20ce77-4753-479a-9ad2-832c1ae9cda8&runtimeVersion=exposdk:57.0.0&channel=main&format=url) |
+
+First launch asks for a World ID face check. After that you're in.
+
 ## What's inside
 
 - TikTok-style vertical feed of short front-camera clips
@@ -36,22 +77,6 @@ Access is gated by [World ID](https://world.org) Selfie Check:
 | Identity | World ID 4.0 — IDKit, Selfie Check credential, server-side proof verification     |
 
 TypeScript end-to-end (shared types from the Worker to the app), pnpm + turbo monorepo, deployed by GitHub Actions on every push.
-
-## Try it
-
-1. Install **Expo Go** — [App Store](https://apps.apple.com/app/expo-go/id982107779) / [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
-2. Install **World App** — [world.org/download](https://world.org/download) (needed for the selfie check)
-3. Open Selfie in Expo Go — scan the QR:
-
-<p align="center">
-  <img src="https://qr.expo.dev/eas-update?projectId=7f20ce77-4753-479a-9ad2-832c1ae9cda8&runtimeVersion=exposdk:57.0.0&channel=main" width="220" alt="Open in Expo Go" />
-</p>
-
-or open this link on your phone:
-
-```
-https://qr.expo.dev/eas-update?projectId=7f20ce77-4753-479a-9ad2-832c1ae9cda8&runtimeVersion=exposdk:57.0.0&channel=main&format=url
-```
 
 ## Run locally
 
