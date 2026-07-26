@@ -6,10 +6,6 @@ import { usersRouter } from "./routers/users";
 import { videosRouter } from "./routers/videos";
 import { worldidRouter } from "./routers/worldid";
 
-/**
- * The whole API surface. `AppRouter` (the *type*) is what the mobile app
- * imports for end-to-end type safety.
- */
 export const appRouter = router({
   worldid: worldidRouter,
   auth: authRouter,

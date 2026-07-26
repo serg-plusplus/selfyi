@@ -10,19 +10,13 @@ interface FeedListProps<T> {
   data: T[];
   renderItem: (item: T, index: number) => ReactElement | null;
   keyExtractor: (item: T) => string;
-  /** full item height — one item per swipe (TikTok pager, Decision 13). */
   itemHeight: number;
   onEndReached?: () => void;
   onViewableItemsChanged?: (info: ViewableInfo<T>) => void;
   viewabilityConfig?: { itemVisiblePercentThreshold?: number };
-  /** Raw scroll passthrough — the feed derives the active page from offset. */
   onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
-/**
- * Virtualized vertical pager built on @legendapp/list. One full-screen video
- * per swipe, snap paging, no pull-to-refresh (Decision 13).
- */
 export function FeedList<T>({
   data,
   renderItem,

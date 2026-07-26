@@ -6,12 +6,6 @@ import { useUiStore, useUploadVideo } from "@/sdk";
 import { theme } from "@/lib/theme";
 import Logo from "../../../../logo.svg";
 
-/**
- * The always-visible camera FAB (Decision 6 + 13.2): opens the NATIVE iOS
- * camera (max 30s, enforced by the system UI), uploads the result to Stream.
- * While uploading the FAB turns into a spinner; on failure → alert; on
- * success → "Published" toast that deep-links to the own profile.
- */
 export function RecordFab() {
   const insets = useSafeAreaInsets();
   const fabState = useUiStore((s) => s.fabState);
@@ -52,7 +46,6 @@ export function RecordFab() {
       {fabState === "uploading" ? (
         <ActivityIndicator color="#fff" />
       ) : (
-        // The FAB *is* the brand logo (blue circle + eyes), scaled to fill.
         <Logo width={60} height={60} />
       )}
     </Pressable>

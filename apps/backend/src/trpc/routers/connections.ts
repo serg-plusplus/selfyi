@@ -21,7 +21,6 @@ const nowIso = () => new Date().toISOString();
 const nowSql = () => sql`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`;
 const pairKeyOf = (a: string, b: string) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 
-/** Random 5–30s delay so mock approvals feel human (Decision 12). */
 function mockApproveAt(): string {
   const span = MOCK_APPROVE_DELAY_MAX_SEC - MOCK_APPROVE_DELAY_MIN_SEC;
   const delay = MOCK_APPROVE_DELAY_MIN_SEC + Math.floor(Math.random() * (span + 1));
@@ -35,7 +34,6 @@ function toConnectionApi(c: ConnectionRow, viewerId: string, other: UserRow): Co
     status: c.status as Connection["status"],
     direction: c.requesterId === viewerId ? "outgoing" : "incoming",
     other: toUserApi(other),
-    // Decision 8: approve auto-reveals contacts (if the other party entered them)
     other_contacts: approved ? { instagram: other.instagram, whatsapp: other.whatsapp } : null,
     created_at: c.createdAt,
     updated_at: c.updatedAt,
@@ -43,7 +41,6 @@ function toConnectionApi(c: ConnectionRow, viewerId: string, other: UserRow): Co
 }
 
 export const connectionsRouter = router({
-  /** Connect button on a profile. Re-request after decline reuses the pair row. */
   send: protectedProcedure
     .input(sendConnectInputSchema)
     .output(connectionSchema)
@@ -76,8 +73,6 @@ export const connectionsRouter = router({
         if (existing.status === "pending") {
           throw new TRPCError({ code: "CONFLICT", message: "Request already pending" });
         }
-        // declined → re-request: same row back to pending, direction = current sender,
-        // fresh updated_at floats it to the top of the addressee's inbox (Decision 9).
         const updated = await ctx.db
           .update(connections)
           .set({
@@ -106,11 +101,6 @@ export const connectionsRouter = router({
       return toConnectionApi(inserted[0]!, ctx.userId, target);
     }),
 
-  /**
-   * Inbox: every connection involving me, newest activity first.
-   * Includes: incoming pending (approve/decline), outgoing pending
-   * ("requested"), and approved (tap → contacts). Declined rows are hidden.
-   */
   inbox: protectedProcedure
     .input(inboxInputSchema)
     .output(connectionPageSchema)
@@ -149,7 +139,6 @@ export const connectionsRouter = router({
       };
     }),
 
-  /** Approve / decline an incoming pending request. */
   respond: protectedProcedure
     .input(respondConnectInputSchema)
     .output(connectionSchema)

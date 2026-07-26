@@ -11,10 +11,6 @@ import { toVideoApi } from "../../lib/serialize";
 import { protectedProcedure, router } from "../trpc";
 
 export const feedRouter = router({
-  /**
-   * The feed: ALL ready videos, newest → oldest (ULID keyset pagination).
-   * The cursor-less first page is KV-cached (30s TTL, invalidated on publish).
-   */
   main: protectedProcedure
     .input(paginationInputSchema)
     .output(feedPageSchema)
@@ -52,7 +48,6 @@ export const feedRouter = router({
       return page;
     }),
 
-  /** Videos by one user, newest first. Owner also sees 'processing' uploads. */
   user: protectedProcedure
     .input(userFeedInputSchema)
     .output(feedPageSchema)

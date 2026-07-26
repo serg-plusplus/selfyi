@@ -10,7 +10,6 @@ import { EmptyState } from "@/components/EmptyState";
 import { ShareContactModal } from "@/components/ShareContactModal";
 import { theme } from "@/lib/theme";
 
-/** Own profile: avatar, @handle, contacts (view/edit), logout, video grid. */
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -31,8 +30,6 @@ export default function ProfileScreen() {
         onEndReached={() => query.hasNextPage && query.fetchNextPage()}
         ListHeaderComponent={
           <View style={{ alignItems: "center", padding: theme.spacing.lg, gap: theme.spacing.sm }}>
-            {/* Logout: vertically centered on the avatar row, safely offset to
-                the right so it can't be fat-fingered from the avatar. */}
             <Pressable
               onPress={logout}
               hitSlop={10}

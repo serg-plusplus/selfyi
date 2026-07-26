@@ -7,7 +7,6 @@ import { theme } from "@/lib/theme";
 
 const AUTO_HIDE_MS = 4000;
 
-/** Single global toast ("Published" etc.). Tap → optional deep link. */
 export function ToastHost() {
   const router = useRouter();
   const insets = useSafeAreaInsets();

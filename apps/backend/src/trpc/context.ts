@@ -6,13 +6,10 @@ export interface Context {
   env: Env;
   db: DB;
   req: Request;
-  /** Authenticated user id, or null for anonymous/public requests. */
   userId: string | null;
-  /** Defer work past the response (CF executionCtx.waitUntil). */
   waitUntil: (p: Promise<unknown>) => void;
 }
 
-/** Minimal shape of CF's ExecutionContext — avoids Hono/workers-types drift. */
 export interface WaitUntilCtx {
   waitUntil(promise: Promise<unknown>): void;
 }
@@ -21,7 +18,6 @@ export interface CreateContextOptions {
   req: Request;
   env: Env;
   executionCtx?: WaitUntilCtx;
-  /** allow injecting a db in tests */
   db?: DB;
 }
 
@@ -37,7 +33,6 @@ export async function createContext(opts: CreateContextOptions): Promise<Context
       const payload = await verifyAppJwt(token, env.JWT_SECRET);
       userId = typeof payload.sub === "string" ? payload.sub : null;
     } catch {
-      // invalid/expired token → treat as anonymous; protectedProcedure will 401
       userId = null;
     }
   }

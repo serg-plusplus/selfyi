@@ -1,139 +1,64 @@
-# Selfie
+<p align="center">
+  <img src="logo.svg" width="72" alt="Selfie" />
+</p>
 
-Humans-only TikTok-style video app: **World ID Selfie Check** gate → vertical
-video feed → record with the native camera → **Connect** with people →
-exchange Instagram/WhatsApp after mutual approval.
+<h1 align="center">Selfie</h1>
 
-Full product/technical spec: **[SPEC.md](./SPEC.md)** · env placeholders:
-**[ENVIRONMENT.md](./ENVIRONMENT.md)** · agent skills for this repo:
-**[SKILLS.md](./SKILLS.md)**.
+<p align="center"><b>Meet real people. No photos, no bios — just faces, the moment they show up.</b></p>
 
-Stack: Cloudflare Workers + **D1** + **KV** + **Stream** (backend, Hono+tRPC) ·
-Expo / React Native (mobile) · `packages/common` zod schemas as the single
-source of truth (end-to-end types, zero codegen).
+<p align="center"><a href="https://sel.fyi">sel.fyi</a></p>
 
----
+Selfie is a humans-only short-video feed. Live clips from real people — scroll, watch, find someone you'd actually want to know. Every face is checked live, in motion. One person, one account. That's the whole rule.
 
-## Prerequisites
+## What's inside
 
-- Node 20+, pnpm 10 (`corepack enable`)
-- A Cloudflare account with a **Stream subscription** ($5/mo minimum)
-- A **World ID Developer Portal** app (https://developer.worldcoin.org)
-- A free **Pexels API key** (https://www.pexels.com/api/) — for seeding only
-- The **Expo Go** app on your iPhone — no Xcode, no Apple/Google dev accounts
+- TikTok-style vertical feed of short front-camera clips
+- Record → upload → in the feed, straight from the phone
+- Profiles are just a @handle and your videos — no bios, no filters, no fakes
+- Signing up **is** a selfie: no name, no email, no phone number
 
-> Step-by-step onboarding checklist: **[TODO.md](./TODO.md)**.
+## Every face is real — World ID
 
-## 1. Install & typecheck
+Access is gated by [World ID](https://world.org) Selfie Check:
+
+1. On first launch the app hands off to **World App**, where the user completes a **Selfie Check** — a live, in-motion face check.
+2. A **Cloudflare Durable Object** holds the World ID bridge session and verifies the **zero-knowledge proof** entirely server-side. Keys, proofs and World ID secrets never touch the client — the mobile app ships zero World ID code.
+3. The proof's **nullifier** becomes the account anchor: one human = one account. Nothing else is collected or stored.
+
+## Stack
+
+| Layer    | Tech                                                                              |
+| -------- | --------------------------------------------------------------------------------- |
+| Mobile   | Expo (React Native), expo-router, expo-video, tRPC + TanStack Query               |
+| API      | Cloudflare Workers — Hono + tRPC                                                  |
+| Data     | Cloudflare D1, KV, Durable Objects                                                |
+| Video    | Cloudflare Stream (direct upload, HLS, webhooks)                                  |
+| Identity | World ID 4.0 — IDKit, Selfie Check credential, server-side proof verification     |
+
+TypeScript end-to-end (shared types from the Worker to the app), pnpm + turbo monorepo, deployed by GitHub Actions on every push.
+
+## Try it
+
+1. Install **Expo Go** — [App Store](https://apps.apple.com/app/expo-go/id982107779) / [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
+2. Install **World App** — [world.org/download](https://world.org/download) (needed for the selfie check)
+3. Open Selfie in Expo Go — scan the QR:
+
+<p align="center">
+  <img src="https://qr.expo.dev/eas-update?projectId=7f20ce77-4753-479a-9ad2-832c1ae9cda8&runtimeVersion=exposdk:57.0.0&channel=main" width="220" alt="Open in Expo Go" />
+</p>
+
+or open this link on your phone:
+
+```
+https://qr.expo.dev/eas-update?projectId=7f20ce77-4753-479a-9ad2-832c1ae9cda8&runtimeVersion=exposdk:57.0.0&channel=main&format=url
+```
+
+## Run locally
 
 ```bash
 pnpm install
-pnpm build        # builds @selfie/common + emits the backend AppRouter types
-pnpm typecheck    # all three packages
+pnpm --filter @selfie/backend dev    # Cloudflare Worker on :8787
+pnpm --filter @selfie/mobile start   # Expo dev server
 ```
 
-## 2. Cloudflare resources (once)
-
-```bash
-cd apps/backend
-pnpm exec wrangler login
-pnpm exec wrangler d1 create selfie-db        # paste database_id into wrangler.toml
-pnpm exec wrangler kv namespace create KV     # paste id into wrangler.toml
-```
-
-Fill the rest of `wrangler.toml` `[vars]` (`STREAM_ACCOUNT_ID`,
-`STREAM_CUSTOMER_CODE`, `WORLD_APP_ID`, `WORLD_ACTION`) and set secrets:
-
-```bash
-pnpm exec wrangler secret put JWT_SECRET
-pnpm exec wrangler secret put STREAM_API_TOKEN
-pnpm exec wrangler secret put STREAM_WEBHOOK_SECRET
-```
-
-Create the Stream webhook (Dashboard → Stream → Webhooks, or API) pointing to
-`https://<your-worker>/api/webhooks/stream` — it prints the signing secret.
-
-Apply the schema:
-
-```bash
-pnpm --filter @selfie/backend db:migrate:local    # local dev DB
-pnpm --filter @selfie/backend db:migrate:remote   # production D1
-```
-
-## 3. Seed mock data (10 users, 100 videos)
-
-```bash
-cp apps/backend/dev.vars.example apps/backend/.dev.vars   # fill PEXELS_API_KEY etc.
-pnpm --filter @selfie/backend seed                 # Pexels → Stream → seed/seed.sql
-pnpm --filter @selfie/backend seed:apply:local     # and/or seed:apply:remote
-```
-
-## Running modes — read this first
-
-| | Dev mode (this section) | Published mode, **24/7** (§5) |
-|---|---|---|
-| JS served from | your Mac (Metro dev server) | **Expo CDN** (`u.expo.dev`) — laptop can be off |
-| Backend | local `wrangler dev` or deployed Worker | deployed Worker (Cloudflare, always on) |
-| QR code | temporary — alive while `expo start` runs | **permanent** — the `qr.expo.dev` QR always serves the latest update in the channel |
-| Use for | daily development, hot reload | your phone + testers, demos, "just works" |
-
-The laptop is only ever needed (a) for dev mode and (b) for the moment you
-run `eas update` to publish a new version. After that the same permanent QR
-keeps working — new publishes swap what it opens.
-
-## 4. Run it (Expo Go — no prebuild, no native builds)
-
-```bash
-pnpm --filter @selfie/backend dev     # local Worker on :8787
-cp apps/mobile/env.development.example apps/mobile/.env.development
-# → set EXPO_PUBLIC_API_BASE_URL to http://<your-mac-LAN-ip>:8787 for a real device
-pnpm --filter @selfie/mobile start    # scan the QR with your iPhone → opens in Expo Go
-```
-
-The app has **zero custom native modules** by design: `expo-video` player,
-`expo-image-picker` native camera — and **zero World ID packages on the
-client**: the whole IDKit bridge flow (RP signing, session, polling, proof
-verification) runs in a Durable Object on the Worker. The phone only opens
-`connectorURI` and polls session status (see SPEC §3).
-
-### Dev without World App
-
-Set `EXPO_PUBLIC_WORLD_MOCK=1` (mobile) + `WORLD_VERIFY_MODE=mock` (backend
-`.dev.vars`). The gate button becomes "Continue (dev mock)". For a real
-staging flow, create a **staging** app in the World ID portal and use
-https://simulator.worldcoin.org.
-
-## 5. Share with testers (Expo Go + EAS Update, all free)
-
-```bash
-npm i -g eas-cli && eas login          # neutral Expo account (name shows in URLs)
-cd apps/mobile && eas init             # writes EAS_PROJECT_ID
-# point EXPO_PUBLIC_API_BASE_URL at the DEPLOYED Worker first — env is baked in
-eas update --branch main --message "eas"
-```
-
-Tester link/QR (opens straight in Expo Go):
-
-```
-https://qr.expo.dev/eas-update?projectId=<EAS_PROJECT_ID>&runtimeVersion=exposdk:57.0.0&channel=main
-```
-
-Testers install Expo Go, scan, done. **This QR works 24/7 with your laptop
-off**: the bundle is hosted on Expo's CDN and the backend is a deployed
-Cloudflare Worker. The QR itself is permanent — every new `eas update
---branch main` replaces what it opens, no re-sharing needed. Prerequisites
-for "laptop-off" mode: backend deployed (§2), remote D1 migrated + seeded
-(§3), and `EXPO_PUBLIC_API_BASE_URL` pointing at the deployed Worker at
-publish time. No Apple/Google accounts, no UDIDs, no builds.
-
-## Layout
-
-```
-packages/common/     # zod schemas, enums, constants, ULID
-apps/backend/        # CF Worker: trpc/ (auth, feed, videos, users, connections),
-                     # services/ (jwt, stream, worldid), http/ (stream webhook),
-                     # migrations/, scripts/seed.ts
-apps/mobile/         # Expo app: app/ (verify, onboarding, tabs, user, video),
-                     # src/sdk/ (trpc, auth, worldid, upload, queries, store),
-                     # src/components/ (player, pager, FAB, toast, modals)
-```
+Copy `apps/backend/dev.vars.example` → `.dev.vars` and `apps/mobile/env.development.example` → `.env.development` first.

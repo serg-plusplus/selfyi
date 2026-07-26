@@ -1,28 +1,3 @@
-/**
- * Seed script — 10 mock users + 100 videos (Decision 7 / 12).
- *
- * What it does:
- *   1. Searches Pexels for portrait (vertical) people/lifestyle videos per
- *      persona, ≤30s.
- *   2. Tells Cloudflare Stream to COPY each video from its Pexels URL
- *      (`POST /stream/copy`) — nothing is downloaded to your machine.
- *   3. Picks a portrait photo per persona as the avatar (hotlinked from Pexels).
- *   4. Waits for Stream to finish transcoding, then writes `seed/seed.sql`
- *      with users + videos rows (staggered created_at, newest-first feed).
- *
- * Run:
- *   cp apps/backend/dev.vars.example apps/backend/.dev.vars   # fill PEXELS_API_KEY,
- *                                                             # STREAM_ACCOUNT_ID, STREAM_API_TOKEN
- *   pnpm --filter @selfie/backend seed                # → writes seed/seed.sql
- *   pnpm --filter @selfie/backend seed:apply:local    # dev DB
- *   pnpm --filter @selfie/backend seed:apply:remote   # production D1
- *
- * Notes:
- *   - Mock users have real popular Instagram handles as contacts (Decision 12)
- *     and auto-approve incoming connect requests (backend lazy auto-approve).
- *   - Idempotent-ish: uses INSERT OR IGNORE; re-running adds only missing rows.
- *   - Pexels free tier: 200 req/h — this script stays well under.
- */
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,11 +6,6 @@ import { monotonicUlid } from "@selfie/common";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
-
-/** Read KEY="value" lines from .dev.vars (no dotenv dependency needed). */
 function readDevVars(): Record<string, string> {
   try {
     const raw = readFileSync(join(ROOT, ".dev.vars"), "utf8");
@@ -65,7 +35,6 @@ if (!PEXELS_API_KEY || !STREAM_ACCOUNT_ID || !STREAM_API_TOKEN) {
 const VIDEOS_PER_USER = 10; // 10 users × 10 videos = 100
 const MAX_DURATION_SEC = 30;
 
-/** 10 personas: handle, Pexels video query, avatar query, real popular IG as contact. */
 const PERSONAS = [
   { handle: "mia_travels",   video: "woman travel vlog selfie",   avatar: "woman portrait smiling",  instagram: "kimkardashian",  whatsapp: "mia_travels" },
   { handle: "alex_fit",      video: "man workout gym",            avatar: "man portrait gym",        instagram: "cristiano",      whatsapp: "alex_fit" },
@@ -79,10 +48,6 @@ const PERSONAS = [
   { handle: "leo_city",      video: "man city walking selfie",    avatar: "man street portrait",     instagram: "neymarjr",       whatsapp: "leo_city" },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Pexels
-// ---------------------------------------------------------------------------
-
 interface PexelsVideoFile { link: string; width: number; height: number; quality: string }
 interface PexelsVideo { id: number; duration: number; video_files: PexelsVideoFile[] }
 interface PexelsPhoto { src: { large: string } }
@@ -95,7 +60,6 @@ async function pexels<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Vertical, ≤30s videos for a query. Returns direct MP4 links (SD/HD ≤1080p). */
 async function findVideos(query: string, count: number): Promise<string[]> {
   const data = await pexels<{ videos: PexelsVideo[] }>(
     `/videos/search?query=${encodeURIComponent(query)}&orientation=portrait&size=medium&per_page=${count * 3}`,
@@ -118,10 +82,6 @@ async function findAvatar(query: string): Promise<string | null> {
   );
   return data.photos[0]?.src.large ?? null;
 }
-
-// ---------------------------------------------------------------------------
-// Cloudflare Stream
-// ---------------------------------------------------------------------------
 
 const CF_API = "https://api.cloudflare.com/client/v4";
 
@@ -176,10 +136,6 @@ async function waitReady(uids: string[]): Promise<Map<string, StreamVideo>> {
   return ready;
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-
 const esc = (s: string | null) => (s === null ? "NULL" : `'${s.replace(/'/g, "''")}'`);
 
 async function main() {
@@ -189,8 +145,6 @@ async function main() {
     "",
   ];
 
-  // Stagger created_at so the feed (newest → oldest) interleaves authors.
-  // Video N (0..99) is N hours old; ULIDs are minted to match that ordering.
   const nowMs = Date.now();
 
   interface SeedVideo { userIdx: number; url: string }
@@ -231,7 +185,6 @@ async function main() {
   }
   sql.push("");
 
-  // Interleave: video k (k = 0 oldest … N-1 newest) round-robins across users.
   let written = 0;
   for (let k = 0; k < plan.length; k++) {
     const item = plan[k]!;
@@ -239,7 +192,6 @@ async function main() {
     const stream = uid ? readyMap.get(uid) : undefined;
     if (!uid || !stream) continue;
 
-    // newest video is ~1h old, each older one +1h
     const createdMs = nowMs - 1000 * 60 * 60 * (plan.length - k);
     const videoId = monotonicUlid(createdMs);
     sql.push(

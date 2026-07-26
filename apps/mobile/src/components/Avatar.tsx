@@ -8,7 +8,6 @@ interface AvatarProps {
   size?: number;
 }
 
-/** Image avatar with initials fallback (mobile spec §5.2). */
 export function Avatar({ uri, name, size = 40 }: AvatarProps) {
   const initial = (name ?? "?").trim().charAt(0).toUpperCase() || "?";
   const radius = size / 2;

@@ -9,7 +9,6 @@ interface State {
   error: Error | null;
 }
 
-/** Global error boundary (mobile spec §5.2). */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 

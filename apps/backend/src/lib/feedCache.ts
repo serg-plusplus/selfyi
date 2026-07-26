@@ -3,10 +3,6 @@ import type { Env } from "../env";
 
 const KEY = "feed:v1:first-page";
 
-/**
- * KV cache for the hot path: the first (cursor-less) feed page every client
- * requests on launch. Short TTL + explicit invalidation on publish/delete.
- */
 export async function getCachedFirstPage(env: Env): Promise<FeedPage | null> {
   const raw = await env.KV.get(KEY);
   if (!raw) return null;

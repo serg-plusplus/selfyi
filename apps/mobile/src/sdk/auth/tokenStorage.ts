@@ -3,13 +3,11 @@ import * as SecureStore from "expo-secure-store";
 const JWT_KEY = "selfie.jwt";
 const MOCK_NULLIFIER_KEY = "selfie.mockNullifier";
 
-/** Secure (Keychain) storage for the session JWT. */
 export const tokenStorage = {
   getToken: () => SecureStore.getItemAsync(JWT_KEY),
   setToken: (t: string) => SecureStore.setItemAsync(JWT_KEY, t),
   clearToken: () => SecureStore.deleteItemAsync(JWT_KEY),
 
-  /** Stable per-device fake nullifier for the dev mock flow. */
   async getMockNullifier(): Promise<string> {
     const existing = await SecureStore.getItemAsync(MOCK_NULLIFIER_KEY);
     if (existing) return existing;

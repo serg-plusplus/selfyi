@@ -7,10 +7,6 @@ import { EmptyState } from "@/components/EmptyState";
 import { LoadingDots } from "@/components/LoadingDots";
 import { theme } from "@/lib/theme";
 
-/**
- * Public profile (Decision 13.6): avatar, @handle, video grid, and the
- * Connect button — Connect / Requested / Respond in Inbox / Connected.
- */
 export default function UserProfileScreen() {
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const router = useRouter();

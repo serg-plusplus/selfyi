@@ -1,6 +1,5 @@
 import { trpc } from "../api/trpc";
 
-/** Inbox: all my connections, newest activity first. */
 export function useInbox() {
   return trpc.connections.inbox.useInfiniteQuery(
     { limit: 20 },
@@ -8,7 +7,6 @@ export function useInbox() {
   );
 }
 
-/** Connect button on a profile. */
 export function useSendConnect() {
   const utils = trpc.useUtils();
   return trpc.connections.send.useMutation({
@@ -22,7 +20,6 @@ export function useSendConnect() {
   });
 }
 
-/** Approve / decline an incoming request (Inbox). */
 export function useRespondConnect() {
   const utils = trpc.useUtils();
   return trpc.connections.respond.useMutation({

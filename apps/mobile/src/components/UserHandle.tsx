@@ -8,7 +8,6 @@ interface UserHandleProps {
   tappable?: boolean;
 }
 
-/** Tappable @handle that navigates to the public profile (mobile spec §5.2). */
 export function UserHandle({ handle, style, tappable = true }: UserHandleProps) {
   const router = useRouter();
   return (

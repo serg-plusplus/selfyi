@@ -14,12 +14,10 @@ import { trpc } from "../api/trpc";
 import { tokenStorage } from "./tokenStorage";
 
 type AuthStatus = "loading" | "authed" | "unauthed";
-/** SPEC §5.4 UI states ('confirmed'/'failed' resolve into authed / thrown error). */
 export type GateState = "idle" | "opening" | "awaiting";
 
 const POLL_INTERVAL_MS = 2_000;
 const POLL_SLICE_MS = 200;
-/** SPEC §5.3 — client-side timeout 5 minutes. */
 const GATE_TIMEOUT_MS = 5 * 60 * 1000;
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -43,13 +41,9 @@ function friendlyGateError(code: string | null): string {
 interface AuthContextValue {
   user: Me | null;
   status: AuthStatus;
-  /** World ID gate progress for the verify screen (SPEC §5.4). */
   gateState: GateState;
-  /** Run the World ID gate: create session → World App → poll → JWT. */
   verifyWithWorldId: () => Promise<void>;
-  /** Onboarding: claim a @handle (first login only). */
   completeOnboarding: (handle: string) => Promise<void>;
-  /** Update own contacts (Share contact popup / profile edit). */
   updateContacts: (contacts: { instagram?: string; whatsapp?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -87,12 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void bootstrap();
   }, [bootstrap]);
 
-  /**
-   * SPEC §5.3 — poll `worldid.getSession` every 2s until confirmed/failed.
-   * A deep-link return from World App pokes an immediate poll (but we never
-   * rely on it alone — the user may switch back manually). Network errors
-   * don't change state; the next tick retries (SPEC §7).
-   */
   const pollSession = useCallback(
     async (sessionId: string): Promise<WorldIdSessionStatus> => {
       let poke = false;
@@ -109,9 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             );
             if (s.state !== "pending") return s;
           } catch {
-            // transient network failure — retry on the next tick
           }
-          // sleep in slices so a deep-link poke shortens the wait
           for (let waited = 0; waited < POLL_INTERVAL_MS && !poke; waited += POLL_SLICE_MS) {
             await sleep(POLL_SLICE_MS);
           }

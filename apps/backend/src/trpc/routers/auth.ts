@@ -11,13 +11,7 @@ import { protectedProcedure, router } from "../trpc";
 
 const now = () => sql`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`;
 
-/**
- * Login itself lives in the `worldid` router (session flow — SPEC §3):
- * worldid.getSession returns the JWT once the proof is confirmed.
- * This router covers everything after that.
- */
 export const authRouter = router({
-  /** One-time onboarding: claim a @handle. */
   completeOnboarding: protectedProcedure
     .input(completeOnboardingInputSchema)
     .output(meSchema)
@@ -32,7 +26,6 @@ export const authRouter = router({
         return toMeApi(updated[0]);
       } catch (e) {
         if (e instanceof TRPCError) throw e;
-        // unique violation on handle
         throw new TRPCError({ code: "CONFLICT", message: "Handle already taken", cause: e });
       }
     }),
@@ -43,10 +36,6 @@ export const authRouter = router({
     return toMeApi(rows[0]);
   }),
 
-  /**
-   * "Share contact" popup: store WhatsApp / Instagram usernames on the
-   * profile. Entered once, editable later from the own-profile screen.
-   */
   updateContacts: protectedProcedure
     .input(updateContactsInputSchema)
     .output(meSchema)

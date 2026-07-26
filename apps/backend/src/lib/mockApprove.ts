@@ -2,12 +2,6 @@ import { and, eq, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import type { DB } from "../db/client";
 import { connections } from "../db/schema";
 
-/**
- * Lazy auto-approve for mock users (Decision 12): pending requests addressed
- * to a mock user carry `auto_approve_at`; any read that touches connections
- * calls this first, flipping overdue rows to 'approved'. No queues, no crons —
- * the delay (5–30s) exists purely so the demo feels human.
- */
 export async function applyMockAutoApprovals(db: DB, userIds?: string[]): Promise<void> {
   const now = new Date().toISOString();
   const overdue = and(

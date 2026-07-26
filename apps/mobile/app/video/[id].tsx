@@ -8,7 +8,6 @@ import { UserHandle } from "@/components/UserHandle";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { theme } from "@/lib/theme";
 
-/** Single video view (from a profile grid). Own videos can be deleted. */
 export default function VideoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();

@@ -5,10 +5,6 @@ import { AuthGate } from "@/components/AuthGate";
 import { RecordFab } from "@/components/RecordFab";
 import { theme } from "@/lib/theme";
 
-/**
- * Three tabs (Decision 13.2): Feed, Inbox, Profile — plus the always-visible
- * camera FAB overlaid bottom-right on every tab.
- */
 export default function TabLayout() {
   return (
     <AuthGate>

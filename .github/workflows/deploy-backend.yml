@@ -1,17 +1,5 @@
-# Deploys the Cloudflare Worker (apps/backend) on every push to main.
-#
-# Before deploying, replaces the <PLACEHOLDER> tokens in wrangler.toml with
-# values from GitHub secrets (repo → Settings → Secrets and variables → Actions):
-#
-#   Config placeholders (injected into wrangler.toml):
-#     D1_DATABASE_ID, KV_NAMESPACE_ID, CF_ACCOUNT_ID,
-#     STREAM_CUSTOMER_CODE, WORLD_APP_ID, WORLD_RP_ID
-#
-#   Auth:
-#     CLOUDFLARE_API_TOKEN  (token with Workers Scripts:Edit, D1:Edit, KV:Edit)
-#
-#   Worker runtime secrets (optional — synced via `wrangler secret put` if set):
-#     JWT_SECRET, STREAM_API_TOKEN, STREAM_WEBHOOK_SECRET, WORLD_RP_SIGNING_KEY
+# Deploys the Cloudflare Worker on push to main. <PLACEHOLDER> tokens in
+# wrangler.toml are injected from GitHub Actions secrets.
 
 name: Deploy backend
 

@@ -24,7 +24,6 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Parse Cloudflare's `Webhook-Signature: time=...,sig1=...` header. */
 function parseSignatureHeader(header: string): { time: string; sig: string } | null {
   const parts = Object.fromEntries(
     header.split(",").map((kv) => {
@@ -47,10 +46,6 @@ interface StreamWebhookBody {
 
 export const webhooks = new Hono<{ Bindings: Env }>();
 
-/**
- * Cloudflare Stream callback. Verifies the HMAC signature, then on
- * `state == 'ready'` flips the matching video row to 'ready'.
- */
 webhooks.post("/", async (c) => {
   const raw = await c.req.text();
   const header = c.req.header("webhook-signature");

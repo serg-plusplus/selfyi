@@ -18,11 +18,6 @@ interface ShareContactModalProps {
   onClose: () => void;
 }
 
-/**
- * The "Share contact" popup (Decision 8): enter Instagram / WhatsApp usernames
- * once — they're stored on the profile and auto-revealed to every approved
- * connection. Reused from the own-profile screen for editing.
- */
 export function ShareContactModal({ visible, onClose }: ShareContactModalProps) {
   const { user, updateContacts } = useAuth();
   const [instagram, setInstagram] = useState(user?.instagram ?? "");

@@ -8,7 +8,6 @@ const t = initTRPC.context<Context>().create({
       ...shape,
       data: {
         ...shape.data,
-        // surface Zod issues to the client for nicer form errors
         zodError:
           error.code === "BAD_REQUEST" && error.cause instanceof ZodError
             ? error.cause.flatten()
@@ -30,5 +29,4 @@ const enforceAuth = t.middleware(async ({ ctx, next }) => {
   return next({ ctx: { ...ctx, userId: ctx.userId } });
 });
 
-/** Procedure that requires a valid JWT. `ctx.userId` is narrowed to string. */
 export const protectedProcedure = t.procedure.use(enforceAuth);

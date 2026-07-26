@@ -18,10 +18,6 @@ import { protectedProcedure, router } from "../trpc";
 const idInput = z.object({ id: ulidSchema });
 
 export const videosRouter = router({
-  /**
-   * Create a Stream direct upload + a 'processing' video row. The client
-   * uploads the file to `uploadURL`; the Stream webhook flips it to 'ready'.
-   */
   getUploadUrl: protectedProcedure
     .output(uploadUrlResponseSchema)
     .mutation(async ({ ctx }) => {

@@ -10,9 +10,7 @@ import { protectedProcedure, router } from "../trpc";
 
 const pairKeyOf = (a: string, b: string) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 
-/** Public profile + viewer-relative connection state (drives the Connect button). */
 async function toProfile(ctx: Context & { userId: string }, user: UserRow): Promise<Profile> {
-  // flip any overdue mock auto-approvals so the button/state is fresh
   await applyMockAutoApprovals(ctx.db, [ctx.userId]);
 
   const rows = await ctx.db
@@ -22,7 +20,6 @@ async function toProfile(ctx: Context & { userId: string }, user: UserRow): Prom
     .limit(1);
 
   const c = rows[0];
-  // declined is invisible to the requester (Decision 9) → behaves like "none"
   const connection =
     !c || c.status === "declined" || user.id === ctx.userId
       ? null

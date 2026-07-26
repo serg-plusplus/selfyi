@@ -1,65 +1,40 @@
-# Selfie backend — Cloudflare Worker.
-# Stack: Hono + tRPC, D1 (primary store), KV (feed cache), Stream (video).
-
-name = "selfyi"
+name = "selfie-mvp-backend"
 main = "src/index.ts"
 compatibility_date = "2025-01-09"
-# enable_nodejs_process_v2: full Node-like `process` (incl. process.versions.node).
-# Required by @worldcoin/idkit-server's isServerEnvironment() guard — without it
-# signRequest() throws "can only be used in Node.js environments" on Workers.
-# Default-on from compat date 2025-09-15; we opt in explicitly while our date is
-# older. NOTE: needs wrangler v4 locally — the workerd bundled with wrangler 3.x
-# knows the flag but ships process.versions as {} (no .node key).
+# enable_nodejs_process_v2 is required by @worldcoin/idkit-server's
+# environment check (needs process.versions.node on Workers).
 compatibility_flags = ["nodejs_compat", "enable_nodejs_process_v2"]
 
-# ----------------------------------------------------------------------------
-# Bindings
-# ----------------------------------------------------------------------------
+# <PLACEHOLDER> values are injected by CI from GitHub secrets on deploy.
 
-# Primary database. Create once:
-#   wrangler d1 create selfie-db
-# then paste the printed database_id below and run the migration:
-#   pnpm --filter @selfie/backend db:migrate:remote   (and :local for dev)
 [[d1_databases]]
 binding = "DB"
 database_name = "selfie-db"
 database_id = "<D1_DATABASE_ID>"
 
-# Feed first-page cache + mock World ID sessions. Create once:
-#   wrangler kv namespace create KV
 [[kv_namespaces]]
 binding = "KV"
 id = "<KV_NAMESPACE_ID>"
 
-# Durable Object: live World ID bridge sessions (holds the in-memory bridge
-# request, polls every 2s via alarm, verifies the proof server-side).
 [[durable_objects.bindings]]
 name = "WORLD_ID_SESSION"
 class_name = "WorldIdSession"
 
 [[migrations]]
 tag = "v1"
-# SQLite-backed DO storage — required on the Workers Free plan (and the
-# recommended backend anyway). Classic `new_classes` needs a paid plan.
 new_sqlite_classes = ["WorldIdSession"]
 
-# ----------------------------------------------------------------------------
-# Vars (non-secret). Secrets are set via `wrangler secret put <NAME>`:
-#   JWT_SECRET, STREAM_API_TOKEN, STREAM_WEBHOOK_SECRET, WORLD_RP_SIGNING_KEY
-# Local dev reads everything from .dev.vars (see dev.vars.example).
-# ----------------------------------------------------------------------------
+# Secrets (wrangler secret put): JWT_SECRET, STREAM_API_TOKEN,
+# STREAM_WEBHOOK_SECRET, WORLD_RP_SIGNING_KEY. Local dev reads .dev.vars.
 [vars]
 ENVIRONMENT = "production"
 STREAM_ACCOUNT_ID = "<CF_ACCOUNT_ID>"
 STREAM_CUSTOMER_CODE = "<STREAM_CUSTOMER_CODE>"
-# World ID (Developer Portal → your app):
-WORLD_APP_ID = "<WORLD_APP_ID>"            # app_xxxxxxxx
-WORLD_RP_ID = "<WORLD_RP_ID>"              # rp_xxxxxxxx
-WORLD_ACTION = "go-selfie"               # the action configured in the portal
-WORLD_ENV = "production"                   # "staging" | "production"
-APP_SCHEME = "selfie"                      # default return_to deep-link scheme
-# "live" → real bridge + proof verification; "mock" → skip World App entirely
-# (dev only — pairs with EXPO_PUBLIC_WORLD_MOCK=1 on the client).
+WORLD_APP_ID = "<WORLD_APP_ID>"
+WORLD_RP_ID = "<WORLD_RP_ID>"
+WORLD_ACTION = "go-selfie"
+WORLD_ENV = "production"
+APP_SCHEME = "selfie"
 WORLD_VERIFY_MODE = "live"
 
 [observability]

@@ -19,10 +19,6 @@ export interface DirectUploadResult {
   uid: string;
 }
 
-/**
- * Create a Stream Direct Creator Upload. The client uploads the file straight
- * to `uploadURL` — bytes never pass through the Worker.
- */
 export async function createDirectUpload(
   env: Env,
   params: DirectUploadParams,
@@ -57,10 +53,7 @@ export async function deleteStreamVideo(env: Env, uid: string): Promise<void> {
   });
 }
 
-/** Default poster frame for a Stream video. */
 export function thumbnailUrl(env: Env, uid: string, timeSec = 1): string {
-  // Tolerate "customer-XXX" / "customer-XXX.cloudflarestream.com" paste-os in
-  // the STREAM_CUSTOMER_CODE var — we only need the bare code here.
   const code = env.STREAM_CUSTOMER_CODE.replace(/^(https?:\/\/)?(customer-)?/, "").replace(
     /\.cloudflarestream\.com.*$/,
     "",

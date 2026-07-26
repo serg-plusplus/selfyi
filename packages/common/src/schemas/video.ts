@@ -3,7 +3,6 @@ import { isoDateSchema, ulidSchema } from "./common";
 import { videoStatusSchema } from "./enums";
 import { userSchema } from "./user";
 
-/** Video as returned by the API (author joined). */
 export const videoSchema = z.object({
   id: ulidSchema,
   author: userSchema,
@@ -15,7 +14,6 @@ export const videoSchema = z.object({
 });
 export type Video = z.infer<typeof videoSchema>;
 
-/** Stream Direct Creator Upload — client uploads straight to `uploadURL`. */
 export const uploadUrlResponseSchema = z.object({
   uploadURL: z.string(),
   videoId: ulidSchema,

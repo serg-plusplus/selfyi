@@ -6,13 +6,6 @@ import type { Video } from "@/sdk";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { VideoOverlay } from "@/components/VideoOverlay";
 
-/**
- * One full-screen feed card: autoplay when active, tap to pause, loop.
- *
- * `mounted` gates the actual player: iOS allows only a handful of concurrent
- * video decoders, so the feed keeps live players ONLY for the active card ± 1
- * (TikTok pattern) — every other card renders its poster thumbnail instead.
- */
 export function VideoListItem({
   video,
   isActive,
@@ -24,8 +17,6 @@ export function VideoListItem({
   mounted: boolean;
   height: number;
 }) {
-  // Sound is always on for now (mute toggle disabled in VideoOverlay):
-  // const muted = useUiStore((s) => s.muted);
   const [manualPause, setManualPause] = useState(false);
 
   useEffect(() => {

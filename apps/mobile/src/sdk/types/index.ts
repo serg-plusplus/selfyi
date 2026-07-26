@@ -1,4 +1,3 @@
-/** API types, mirrored from the backend via @selfie/common. */
 export type {
   Connection,
   ConnectionDirection,

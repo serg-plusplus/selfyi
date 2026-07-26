@@ -1,16 +1,6 @@
-# Publishes the mobile app to testers via EAS Update on every push to main.
-# Delivery model (Decision 2): Expo Go + `eas update` — no native builds.
-# Testers open the QR/link from ENVIRONMENT.md (channel=main) in Expo Go.
-#
-# Required GitHub secrets (repo → Settings → Secrets and variables → Actions):
-#   EXPO_TOKEN                        expo.dev → Account settings → Access tokens
-#   EAS_PROJECT_ID                    from `eas init` (baked into updates URL)
-#   EXPO_PUBLIC_API_BASE_URL          deployed Worker URL (https://…workers.dev)
-#                                     — baked into the JS bundle at publish time!
-#   EXPO_PUBLIC_STREAM_CUSTOMER_CODE  Cloudflare Stream customer-XXXX code
-#
-# NOTE: EXPO_PUBLIC_WORLD_MOCK is deliberately NOT set here — published
-# bundles must always run the real World ID flow (mock is local-dev only).
+# Publishes the mobile app via EAS Update (Expo Go delivery) on push to main.
+# EXPO_PUBLIC_* values come from GitHub Actions secrets and are baked into the
+# published bundle. World ID mock is never enabled in CI.
 
 name: EAS Update (mobile)
 

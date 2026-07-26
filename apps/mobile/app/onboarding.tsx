@@ -15,7 +15,6 @@ import { handleSchema } from "@selfie/common";
 import { useAuth } from "@/sdk";
 import { theme } from "@/lib/theme";
 
-/** One-time onboarding (Decision 3): pick a unique @username. Nothing else. */
 export default function OnboardingScreen() {
   const router = useRouter();
   const { status, user, completeOnboarding } = useAuth();

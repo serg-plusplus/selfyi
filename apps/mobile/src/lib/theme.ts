@@ -1,7 +1,3 @@
-/**
- * Design tokens (mobile spec §5.1). Components reference these so a future
- * restyle doesn't touch logic. Dark-only for v1.
- */
 export const theme = {
   colors: {
     bg: "#000",

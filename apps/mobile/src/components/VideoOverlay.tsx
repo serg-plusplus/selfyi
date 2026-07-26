@@ -5,10 +5,6 @@ import type { Video } from "@/sdk";
 import { theme } from "@/lib/theme";
 import { UserHandle } from "./UserHandle";
 
-/**
- * Feed video overlay (Decision 13.3): @username pill bottom-left — tap →
- * public profile (the "+" hints at adding the person). No likes/comments/
- */
 export function VideoOverlay({ video }: { video: Video }) {
   const router = useRouter();
 
@@ -28,16 +24,6 @@ export function VideoOverlay({ video }: { video: Video }) {
           <Ionicons name="add" size={20} color="rgba(255,255,255,0.9)" />
         </Pressable>
       </View>
-      {/* Mute toggle — intentionally disabled for now: feed always plays with
-          sound. Re-enable by uncommenting (state lives in uiStore).
-      <Pressable style={styles.mute} onPress={toggleMuted} hitSlop={12}>
-        <Ionicons
-          name={muted ? "volume-mute" : "volume-high"}
-          size={22}
-          color={theme.colors.text}
-        />
-      </Pressable>
-      */}
     </View>
   );
 }
@@ -59,7 +45,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },
-  // kept for the commented-out mute toggle above
   mute: {
     position: "absolute",
     right: theme.spacing.md,

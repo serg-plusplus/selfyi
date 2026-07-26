@@ -1,5 +1,3 @@
-// MUST be first: registers the precompiled IDKit WASM module before any
-// idkit-core code can attempt its (Worker-incompatible) default init.
 import "./idkit-wasm";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Hono } from "hono";
@@ -9,9 +7,7 @@ import { webhooks } from "./http/webhooks";
 import { createContext } from "./trpc/context";
 import { appRouter } from "./trpc/router";
 
-// The contract the mobile app imports for end-to-end type safety.
 export type { AppRouter } from "./trpc/router";
-// Durable Object class export required by the wrangler binding.
 export { WorldIdSession } from "./do/WorldIdSession";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -31,7 +27,6 @@ app.use("*", cors({
 
 app.get("/", (c) => c.json({ ok: true, service: "selfie-backend", env: c.env.ENVIRONMENT }));
 
-// All app traffic goes through tRPC (native fetch adapter mounted on Hono).
 app.all("/trpc/*", (c) =>
   fetchRequestHandler({
     endpoint: "/trpc",
@@ -42,7 +37,6 @@ app.all("/trpc/*", (c) =>
   }),
 );
 
-// Webhooks are the one plain-HTTP surface (external callers, HMAC-verified).
 app.route("/stream/webhook", webhooks);
 
 export default app;

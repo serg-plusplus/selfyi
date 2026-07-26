@@ -4,14 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { config, useAuth } from "@/sdk";
 import { theme } from "@/lib/theme";
 
-/**
- * The entry gate (SPEC §5): tap Verify → backend creates a World ID session →
- * World App opens for Selfie Check → we poll until confirmed. New users are
- * guided to install World App and enroll with a selfie there.
- *
- * UI states (SPEC §5.4): idle → opening (creating session) → awaiting
- * (World App open, polling) → confirmed (redirect) / failed (alert).
- */
 export default function VerifyScreen() {
   const { status, user, gateState, verifyWithWorldId } = useAuth();
 
@@ -24,7 +16,6 @@ export default function VerifyScreen() {
   const verify = async () => {
     try {
       await verifyWithWorldId();
-      // Redirect above kicks in on the state change.
     } catch (e) {
       Alert.alert("Verification failed", e instanceof Error ? e.message : "Please try again.");
     }

@@ -17,13 +17,6 @@ import { ShareContactModal } from "@/components/ShareContactModal";
 import { theme } from "@/lib/theme";
 import { timeAgo } from "@/lib/format";
 
-/**
- * Inbox (Decision 8/9/13.7): all connections, newest activity first.
- * - incoming pending → Approve / Decline
- * - outgoing pending → "Requested"
- * - approved → tap → the other person's contacts (auto-revealed on approve)
- * Refreshes on tab focus — no push notifications in the app.
- */
 export default function InboxScreen() {
   const query = useInbox();
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
@@ -112,7 +105,6 @@ function InboxRow({ connection: c, onOpen }: { connection: Connection; onOpen: (
   );
 }
 
-/** Approved connection detail: the other person's contacts + share-mine prompt. */
 function ContactRevealModal({
   connection: c,
   onClose,
