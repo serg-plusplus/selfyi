@@ -12,6 +12,7 @@ import { theme } from "@/lib/theme";
 
 const AVATAR_SIZE = 88;
 const LOGOUT_SIZE = 38;
+const LOGOUT_GAP = 20;
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -33,25 +34,25 @@ export default function ProfileScreen() {
         onEndReached={() => query.hasNextPage && query.fetchNextPage()}
         ListHeaderComponent={
           <View style={{ alignItems: "center", padding: theme.spacing.lg, gap: theme.spacing.sm }}>
-            <Pressable
-              onPress={logout}
-              hitSlop={10}
-              style={{
-                position: "absolute",
-                top: theme.spacing.lg + AVATAR_SIZE / 2 - LOGOUT_SIZE / 2,
-                left: "50%",
-                marginLeft: AVATAR_SIZE / 2 + theme.spacing.md,
-                width: LOGOUT_SIZE,
-                height: LOGOUT_SIZE,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: theme.colors.surfaceAlt,
-                borderRadius: theme.radius.full,
-              }}
-            >
-              <Ionicons name="log-out-outline" size={20} color={theme.colors.text} />
-            </Pressable>
-            <Avatar uri={user.avatar_url} name={user.handle} size={AVATAR_SIZE} />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ width: LOGOUT_SIZE + LOGOUT_GAP }} />
+              <Avatar uri={user.avatar_url} name={user.handle} size={AVATAR_SIZE} />
+              <Pressable
+                onPress={logout}
+                hitSlop={12}
+                style={{
+                  marginLeft: LOGOUT_GAP,
+                  width: LOGOUT_SIZE,
+                  height: LOGOUT_SIZE,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: theme.colors.surfaceAlt,
+                  borderRadius: theme.radius.full,
+                }}
+              >
+                <Ionicons name="log-out-outline" size={20} color={theme.colors.text} />
+              </Pressable>
+            </View>
             <Text style={{ color: theme.colors.text, fontSize: theme.font.xl, fontWeight: "800" }}>
               @{user.handle}
             </Text>
